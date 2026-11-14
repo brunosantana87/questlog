@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f2a">
+<title>Quest Log — RPG de Produtividade</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+@font-face{font-family:'DotGothic16';src:url(dotgothic16.woff2) format('woff2');font-display:swap}
+@font-face{font-family:'DotGothic16';src:url(dotgothic16-ext.woff2) format('woff2');font-display:swap;unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:'Press Start 2P';src:url(pressstart2p.woff2) format('woff2');font-display:swap}
+</style>
+<style>
+:root{--bg:#0b0f2a;--w1:#26348f;--w2:#111952;--line:#e9ecff;--gold:#ffd447;--xp:#4dffb0;--hp:#ff5470;--mut:#aab2e6;--txt:#fff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'DotGothic16',monospace;font-size:16px;line-height:1.35}
+body{min-height:100vh;background:
+ radial-gradient(1px 1px at 20% 30%,#fff8,transparent),radial-gradient(1px 1px at 70% 10%,#fff6,transparent),
+ radial-gradient(1px 1px at 40% 80%,#fff5,transparent),radial-gradient(1px 1px at 85% 60%,#fff7,transparent),
+ radial-gradient(1px 1px at 10% 70%,#fff5,transparent),radial-gradient(ellipse at 50% -10%,#2b1f6b 0%,#0b0f2a 60%);background-attachment:fixed}
+button,input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
+.app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 150px)}
+.px{font-family:'Press Start 2P',monospace;letter-spacing:.5px}
+.win{position:relative;background:linear-gradient(180deg,var(--w1),var(--w2));border:3px solid var(--line);border-radius:10px;
+ box-shadow:0 0 0 3px #04062a,inset 0 0 0 2px #0a1050,0 6px 0 3px rgba(0,0,0,.35);padding:12px;margin-bottom:14px}
+.win h2{margin:0 0 10px;font-size:17px;font-weight:normal;color:var(--gold);display:flex;align-items:center;gap:8px}
+.win h2 .cnt{margin-left:auto;font-size:13px;color:var(--mut)}
+.mut{color:var(--mut)}
+.spr{image-rendering:pixelated;display:block}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+/* header */
+.hdr .row{align-items:flex-start}
+.avatar{width:64px;height:70px;border:2px solid var(--line);border-radius:8px;background:#0a1050;display:grid;place-items:center;flex-shrink:0}
+.name{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:13px;color:var(--mut)}
+.lv{font-size:11px;color:var(--gold)}
+.bar{height:12px;border:2px solid var(--line);background:#050833;border-radius:3px;overflow:hidden;margin-top:4px}
+.bar>i{display:block;height:100%;background:linear-gradient(180deg,#b5ffe0,var(--xp) 45%,#18a86c);transition:width .6s}
+.bar.hp>i{background:linear-gradient(180deg,#ffb3c1,var(--hp) 45%,#b02040)}
+.bar.st>i{background:linear-gradient(180deg,#fff,currentColor 45%,currentColor)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{font-size:12px;padding:3px 7px;border:2px solid #ffffff55;border-radius:6px;background:#0a1050;white-space:nowrap}
+.chip b{color:var(--gold);font-weight:normal}
+/* tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);background:linear-gradient(180deg,transparent,#05072a 35%)}
+.tabs .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:linear-gradient(180deg,var(--w1),var(--w2));border:3px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 0 0 3px #04062a}
+.tabs button{background:none;border:0;padding:6px 2px;border-radius:6px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--mut)}
+.tabs button .ic{font-size:18px;line-height:1}
+.tabs button.on{color:#fff;background:#ffffff1a}
+
+@keyframes blink{50%{opacity:0}}
+/* buttons */
+.btn{background:linear-gradient(180deg,#ffe58a,#e2a92a);color:#2a1800;border:3px solid #fff3c4;border-radius:8px;padding:8px 12px;box-shadow:0 3px 0 #6e4a00;cursor:pointer;white-space:nowrap}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #6e4a00}
+.btn:disabled{filter:grayscale(1) brightness(.6);cursor:not-allowed}
+.btn.blue{background:linear-gradient(180deg,#7fb2ff,#3a63d8);color:#fff;border-color:#cfe0ff;box-shadow:0 3px 0 #1b2f78}
+.btn.red{background:linear-gradient(180deg,#ff8a9a,#d2334f);color:#fff;border-color:#ffd0d8;box-shadow:0 3px 0 #6e1424}
+.btn.ghost{background:#0a1050;color:#fff;border-color:#ffffff66;box-shadow:none}
+.btn.sm{padding:5px 9px;font-size:14px}
+.btn.wide{width:100%;padding:12px;font-size:17px}
+.fab{position:fixed;right:max(14px,calc(50% - 226px));bottom:calc(env(safe-area-inset-bottom) + 92px);z-index:19}
+/* quests */
+.q{display:flex;align-items:center;gap:10px;padding:9px 4px;border-top:2px dashed #ffffff22}
+.q:first-of-type{border-top:0}
+.q .mon{width:40px;height:40px;flex-shrink:0;display:grid;place-items:center;background:#0a1050;border-radius:6px;border:2px solid #ffffff33}
+.q .t{font-size:16px;word-break:break-word;cursor:pointer}
+.q .meta{font-size:12px;color:var(--mut);display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.q .meta .late{color:#ff7d8f}
+.q.done{opacity:.5}
+.q.done .t{text-decoration:line-through}
+.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px;vertical-align:middle}
+.seg{display:flex;gap:6px;margin-bottom:12px}
+.seg button{flex:1;background:#0a1050;border:2px solid #ffffff44;border-radius:8px;padding:7px 4px;color:var(--mut);font-size:14px}
+.seg button.on{border-color:var(--gold);color:#fff;background:#1d2a85}
+.empty{text-align:center;color:var(--mut);padding:8px 0}
+details summary{cursor:pointer;color:var(--mut);list-style:none;padding:4px 0}
+details summary::-webkit-details-marker{display:none}
+/* textbox */
+.tb{font-size:16px;min-height:3em;white-space:pre-line}
+.tb .who{color:var(--gold)}
+.sugg{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.sugg button{text-align:left}
+/* forms */
+label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+.in{width:100%;background:#050833;border:2px solid #ffffff66;border-radius:6px;padding:10px;outline:none}
+.in:focus{border-color:var(--gold)}
+.pick{display:grid;gap:6px}
+.pick.c2{grid-template-columns:1fr 1fr}.pick.c4{grid-template-columns:repeat(4,1fr)}
+.pick button{background:#0a1050;border:2px solid #ffffff44;border-radius:8px;padding:7px 4px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff}
+.pick button.on{border-color:var(--gold);background:#1d2a85;box-shadow:0 0 0 2px #ffd44755}
+.pick small{color:var(--mut);font-size:11px}
+/* modal */
+.ov{position:fixed;inset:0;z-index:50;background:rgba(2,3,20,.72);display:none;align-items:center;justify-content:center;padding:16px}
+.ov.show{display:flex}
+.ov .win{width:100%;max-width:440px;max-height:88vh;overflow:auto;margin:0;animation:pop .18s ease-out}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+.actions{display:flex;gap:8px;margin-top:14px}.actions .btn{flex:1}
+/* battle */
+.battle{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;
+ background:radial-gradient(ellipse at 50% 60%,#3a2a8a,#07092a 70%)}
+.battle.show{display:flex}
+.battle .stage{position:relative;height:190px;display:grid;place-items:center;width:100%}
+.battle .ground{position:absolute;bottom:18px;width:200px;height:24px;border-radius:50%;background:#00000055}
+.battle .foe{position:relative;animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.battle .foe.hit{animation:shake .35s linear 2;filter:brightness(3)}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.battle .foe.dead{animation:die .7s forwards}
+@keyframes die{to{opacity:0;transform:scale(1.3) translateY(10px);filter:brightness(4) blur(2px)}}
+.dmg{position:absolute;top:20px;font-size:26px;color:#fff;text-shadow:3px 3px 0 #c8143a;animation:dmg 1s forwards;opacity:0}
+@keyframes dmg{0%{opacity:1;transform:translateY(20px)}60%{opacity:1;transform:translateY(-20px)}100%{opacity:0;transform:translateY(-30px)}}
+.slash{position:absolute;width:160px;height:6px;background:#fff;transform:rotate(-35deg) scaleX(0);box-shadow:0 0 12px #fff;opacity:0}
+.slash.go{animation:slash .25s ease-out}
+@keyframes slash{0%{opacity:1;transform:rotate(-35deg) scaleX(0)}100%{opacity:0;transform:rotate(-35deg) scaleX(1.2)}}
+.battle .win{width:100%;max-width:440px}
+.lvup{font-size:26px;color:var(--gold);text-shadow:3px 3px 0 #b8541a,0 0 18px #ffd44788;animation:glow .6s ease-in-out infinite alternate;text-align:center;line-height:1.4}
+@keyframes glow{to{transform:scale(1.06)}}
+.jump{animation:jump .6s ease-in-out infinite}
+@keyframes jump{50%{transform:translateY(-14px)}}
+.rays{position:absolute;width:260px;height:260px;border-radius:50%;background:repeating-conic-gradient(#ffd44733 0 10deg,transparent 10deg 20deg);animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* focus */
+.timer{font-size:34px;text-align:center;margin:10px 0;color:#fff;text-shadow:3px 3px 0 #000}
+.potslot{position:relative;width:76px;height:76px;flex-shrink:0;display:grid;place-items:center;background:#0a1050;border:2px solid var(--gold);border-radius:10px;box-shadow:inset 0 0 14px #ff4a6a55}
+.potslot.locked{border-color:#ffffff33;box-shadow:none}
+.potslot span{position:absolute;right:4px;bottom:3px;font-size:11px;color:#fff;text-shadow:2px 2px 0 #000}
+.potslot .lock{font-size:16px;right:2px;bottom:0}
+.fab{display:none}
+.fabs{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 92px);z-index:19;display:flex;justify-content:flex-end;gap:8px;max-width:480px;margin:0 auto;padding:0 14px;pointer-events:none}
+.fabs .btn{pointer-events:auto;white-space:nowrap}
+.prog{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:12px;color:var(--mut)}
+.prog .bar{flex:1;margin:0;height:9px}
+.prog span{white-space:nowrap}
+.pips{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.pips i{width:12px;height:12px;border-radius:3px;border:2px solid #ffffff55;background:#050833}
+.pips i.on{background:var(--hp);border-color:#ffd0d8}
+.q .mon{position:relative}
+.spark{position:absolute;top:-6px;right:-6px;color:#ffe066;font-size:13px;text-shadow:0 0 6px #ffd447;animation:blink 1s steps(2) infinite}
+.q.shq{background:linear-gradient(90deg,#ffd44718,transparent);border-radius:8px}
+.q.shq .mon{border-color:#ffd447;box-shadow:0 0 8px #ffd44788}
+.shn{color:#ffe066}
+.shiny{filter:drop-shadow(0 0 3px #ffe06688)}
+.sparks{position:absolute;inset:0;pointer-events:none;color:#ffe066;font-size:22px;text-shadow:0 0 10px #ffd447}
+.sparks{display:flex;justify-content:space-around;align-items:flex-start;animation:zz 1.6s ease-in-out infinite}
+.sparks span:nth-child(1){margin-top:60px}.sparks span:nth-child(2){margin-top:20px}
+.best div{position:relative}
+.best div.gotsh{border-color:#ffd447;cursor:pointer}
+.tier{color:var(--mut);font-size:12px;margin:10px 0 6px}
+.tplpack{background:#0a1050;border:2px solid #ffffff33;border-radius:10px;padding:10px;margin-top:10px}
+.tplit{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed #ffffff22;font-size:14px;cursor:pointer}
+.tplit input{width:20px;height:20px;accent-color:#ffd447;flex-shrink:0}
+.tplit small{display:block;color:var(--mut);font-size:11px}
+.tplit.has{opacity:.55}
+select.in{appearance:none;-webkit-appearance:none}
+.evo{display:flex;align-items:center;justify-content:center;gap:6px}
+.evo div{display:flex;flex-direction:column;align-items:center;gap:2px;background:#0a1050;border:2px solid #ffffff33;border-radius:8px;padding:6px 4px;flex:1;min-width:0;font-size:12px;text-align:center}
+.evo div.cur{border-color:var(--gold);box-shadow:0 0 0 2px #ffd44755}
+.evo div.off span{color:var(--mut)}
+.evo i{font-style:normal;font-size:9px;color:var(--gold)}
+.evo b{color:var(--gold);font-weight:normal;font-size:12px}
+.evoswap{position:relative;width:110px;height:140px}
+.evoswap>div{position:absolute;inset:0;display:grid;place-items:center}
+.ev0{animation:evo0 1.8s forwards}.ev1{opacity:0;animation:evo1 1.8s forwards}
+@keyframes evo0{0%,20%{opacity:1;filter:none}25%,35%,45%,55%,65%{opacity:1;filter:brightness(5)}30%,40%,50%,60%{opacity:.3}75%,100%{opacity:0;filter:brightness(5)}}
+@keyframes evo1{0%,70%{opacity:0;filter:brightness(5)}85%{opacity:1;filter:brightness(3)}100%{opacity:1;filter:none}}
+.invitem{background:#0a1050;border:2px solid #ffffff33;border-radius:10px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-width:0}
+.invitem .potslot{width:70px;height:70px}
+.invitem .iname{color:var(--gold)}
+.invitem .btn{margin-top:4px;width:100%}
+.potslot.elx{border-color:#38e8c8;box-shadow:inset 0 0 14px #38e8c855}
+.potslot.elx.locked{border-color:#ffffff33;box-shadow:none}
+.shine{animation:shine 1.6s ease-in-out infinite}
+@keyframes shine{50%{filter:brightness(1.35) drop-shadow(0 0 4px #38e8c8)}}
+.cycle{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.cycle .sub{margin-right:4px}
+.cycle i{display:grid;place-items:center;width:28px;height:28px;border-radius:6px;border:2px solid #ffffff33;background:#0a1050}
+.cycle i.on{border-color:#ff6b85}
+.cycle i.next{border-color:#38e8c8;animation:blink 1s steps(2) infinite}
+.cycle b{color:var(--mut);font-weight:normal}
+.sfx{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed #ffffff22;font-size:14px}
+.sfx .grow small{display:block;color:var(--mut);font-size:12px}
+.potchip{display:inline-flex;align-items:center;gap:4px}
+.restscene{position:relative;height:160px;display:flex;align-items:flex-end;justify-content:center;gap:14px;padding-bottom:10px}
+.restscene .fire{animation:bob 1.4s ease-in-out infinite;margin-bottom:6px}
+.zzz{position:absolute;left:calc(50% - 30px);top:6px;color:#bfe6ff;font-size:12px;animation:zz 2.4s ease-in-out infinite}
+.zzz span{display:inline-block;margin-left:4px;transform:translateY(-8px);font-size:14px}.zzz span+span{transform:translateY(-18px);font-size:17px}
+@keyframes zz{0%{opacity:0;transform:translateY(10px)}30%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+.focusfoe{display:grid;place-items:center;height:150px}
+/* tavern */
+.rw{display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:2px dashed #ffffff22}
+.rw:first-of-type{border-top:0}
+.price{color:var(--gold);font-size:13px}
+.x{background:none;border:0;color:#ff7d8f;font-size:18px;padding:4px 6px}
+/* hero */
+.stat{display:grid;grid-template-columns:48px 1fr 34px;align-items:center;gap:8px;margin:7px 0;font-size:14px}
+.stat .bar{margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kv{background:#0a1050;border:2px solid #ffffff33;border-radius:8px;padding:8px;text-align:center}
+.kv b{display:block;font-size:13px;color:var(--gold);font-weight:normal}
+.kv span{font-size:12px;color:var(--mut)}
+.best{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.best div{background:#0a1050;border:2px solid #ffffff33;border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;text-align:center;min-width:0;overflow-wrap:anywhere}
+.best div i{font-style:normal;color:var(--gold);font-size:11px}
+.best div.off span{color:var(--mut)}
+.ach{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ach div{background:#0a1050;border:2px solid #ffffff33;border-radius:8px;padding:8px;font-size:13px}
+.ach div.on{border-color:var(--gold);background:linear-gradient(180deg,#3a2f6e,#1a1f60)}
+.ach div i{font-style:normal;display:block;color:var(--mut);font-size:11px}
+.ach div.off{opacity:.45}
+.log{font-size:13px;max-height:260px;overflow:auto}
+.log div{padding:5px 0;border-top:1px dashed #ffffff22;display:flex;gap:8px}
+.log div span:last-child{margin-left:auto;color:var(--xp);white-space:nowrap}
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);transform:translateX(-50%);z-index:70;width:calc(100% - 24px);max-width:440px;display:none}
+.toast.show{display:block;animation:pop .2s}
+.toast .win{margin:0;display:flex;align-items:center;gap:10px;padding:10px 12px}
+/* onboarding */
+.logo{display:flex;justify-content:center;margin:18px 0 6px}
+.topbar{display:flex;justify-content:center;margin:2px 0 10px}
+.skins{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.skins button{width:38px;height:38px;border-radius:50%;border:3px solid #ffffff55;padding:0;cursor:pointer}
+.skins button.on{border-color:var(--gold);box-shadow:0 0 0 3px #ffd44766;transform:scale(1.08)}
+/* evita textos escapando das caixas */
+.app,.win,.ov .win{overflow-wrap:break-word;word-wrap:break-word}
+.btn{white-space:normal;line-height:1.25;max-width:100%}
+.q .btn,.rw .btn,.switch .btn,.toast .btn,.fab{white-space:nowrap}
+.sugg button{text-align:left;width:100%;font-size:15px;line-height:1.3}
+.sugg button .mut{display:block;font-size:12px;margin-top:2px}
+.pick button,.classes button{min-width:0;overflow-wrap:anywhere;text-align:center}
+.pick button{font-size:12px;padding:7px 2px}
+.chips .chip{max-width:100%}
+.tb{overflow-wrap:break-word}
+.log div span:nth-child(2){min-width:0;overflow-wrap:anywhere}
+.kv{min-width:0;overflow-wrap:anywhere}
+.tag{text-align:center;color:var(--mut);margin-bottom:18px;font-size:14px}
+.classes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.classes button{background:#0a1050;border:2px solid #ffffff44;border-radius:8px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff}
+.classes button.on{border-color:var(--gold);background:#1d2a85;box-shadow:0 0 0 2px #ffd44755}
+.classes small{color:var(--mut);font-size:12px;text-align:center}
+.switch{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
+textarea.in{min-height:90px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<nav class="tabs" id="tabs" style="display:none"><div class="in">
+ <button data-act="tab" data-id="quests"><span class="ic">⚔</span>Missões</button>
+ <button data-act="tab" data-id="focus"><span class="ic">⧗</span>Foco</button>
+ <button data-act="tab" data-id="tavern"><span class="ic">♦</span>Taverna</button>
+ <button data-act="tab" data-id="hero"><span class="ic">♛</span>Herói</button>
+</div></nav>
+<div class="ov" id="modal"></div>
+<div class="battle" id="battle"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== utilidades ===================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const z=n=>String(n).padStart(2,'0');
+const dstr=d=>d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());
+const today=()=>dstr(new Date());
+const yesterday=()=>{const d=new Date();d.setDate(d.getDate()-1);return dstr(d)};
+const fmtDate=s=>{if(!s)return'';const[y,m,d]=s.split('-');return d+'/'+m};
+
+/* ===================== dados do jogo ===================== */
+const CATS={
+ trab:{n:'Trabalho',a:'FOR',an:'Força',c:'#ff8a5c'},
+ est:{n:'Estudos',a:'INT',an:'Inteligência',c:'#6fb6ff'},
+ sau:{n:'Saúde',a:'VIT',an:'Vitalidade',c:'#5df59a'},
+ pes:{n:'Pessoal',a:'CAR',an:'Carisma',c:'#e59bff'}};
+const DIFF={
+ e:{n:'Fácil',m:'slime',pool:['slime','shroom','ghost','snail','bee','frog'],xp:10,g:5},
+ m:{n:'Média',m:'goblin',pool:['bat','goblin','plant','wolf','spider','wisp'],xp:25,g:12},
+ h:{n:'Difícil',m:'golem',pool:['skull','golem','mimic','knight','eye'],xp:50,g:25},
+ b:{n:'Chefe',m:'dragon',pool:['dragon','demon','kraken','lich'],xp:100,g:50}};
+const CLASSES={
+ war:{n:'Guerreiro',d:'+15% EXP em Trabalho',cat:'trab',pal:{h:'#7a4a22',c:'#c8343f',x:'#dfe6f0'},w:'sword'},
+ mag:{n:'Mago',d:'+15% EXP em Estudos',cat:'est',pal:{h:'#5d2fa0',c:'#3550c8',x:'#a9702e'},w:'staff'},
+ mon:{n:'Monge',d:'+15% EXP em Saúde',cat:'sau',pal:{h:'#2a2a2a',c:'#e98a1e',x:'#e98a1e'},w:null},
+ bar:{n:'Bardo',d:'+15% de Ouro em tudo',cat:null,pal:{h:'#e9b93a',c:'#2ea65c',x:'#a9702e'},w:'lute'}};
+const FOCUS=[
+ {min:15,m:'ghost',n:'Fantasma da Distração'},
+ {min:25,m:'skull',n:'Esqueleto da Procrastinação'},
+ {min:50,m:'golem',n:'Golem do Cansaço'},
+ {min:90,m:'demon',n:'Rei Demônio da Preguiça'}];
+const hashStr=t=>{let h=0;for(const c of String(t))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)};
+function qmon(q){const P=DIFF[q.diff].pool;return P.includes(q.mon)?q.mon:P[hashStr(q.id)%P.length]}
+const pickMon=d=>{const P=DIFF[d].pool;return P[Math.floor(Math.random()*P.length)]};
+const mname=k=>SPR[k].n;
+const art=k=>SPR[k].f?'a':'o';
+const artU=k=>SPR[k].f?'Uma':'Um';
+const BEST=['slime','shroom','ghost','snail','bee','frog','bat','goblin','plant','wolf','spider','wisp','skull','golem','mimic','knight','eye','dragon','demon','kraken','lich'];
+/* ---- períodos, contadores e monstros especiais (✦) ---- */
+const weekKey=(d=new Date())=>{const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return dstr(x)};
+const perKey=q=>q.type==='daily'?today():q.type==='weekly'?weekKey():'all';
+const qDone=q=>q.type==='once'?!!q.done:q.lastDone===perKey(q);
+const qTarget=q=>Math.max(1,+q.target||1);
+const qProg=q=>qDone(q)?qTarget(q):(q.per===perKey(q)?(q.prog||0):0);
+const SHINY_RATE=1/12;
+function rollMon(q){q.mon=pickMon(q.diff);q.shiny=Math.random()<SHINY_RATE}
+function toHsl(hex){const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let h=0,s=0;
+ if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return[h,s,l]}
+function toHex(h,s,l){const f=n=>{const k=(n+h/30)%12,a=s*Math.min(l,1-l),c=l-a*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(c*255).toString(16).padStart(2,'0')};return '#'+f(0)+f(8)+f(4)}
+const SHC={};
+function shinyPal(k){if(SHC[k])return SHC[k];const P=SPR[k].pal,o={};for(const c in P){const[h,s,l]=toHsl(P[c]);if(l<.13){o[c]=P[c];continue}
+ o[c]=s<.18?toHex(45,.65,Math.min(.92,l)):toHex((h+150)%360,Math.min(1,s*1.05),l)}return SHC[k]=o}
+const TITLES=[[1,'Aprendiz'],[3,'Escudeiro'],[5,'Aventureiro'],[8,'Veterano'],[12,'Desbravador'],[16,'Herói'],[20,'Campeão'],[25,'Lenda'],[30,'Mito Vivo']];
+const title=L=>TITLES.filter(t=>L>=t[0]).pop()[1];
+const need=L=>Math.round(100*Math.pow(L,1.35));
+
+/* ===================== sprites em pixel art ===================== */
+const SPR={"slime":{"n":"Slime","rows":["................","................",".......aa.......","......abba......",".....abccba.....","....abddccba....","...abddccccba...","..abdcccccccba..",".abccccccccccba.","abcceacccceaccfa","abccaaccccaaccfa","abcccccaacccccca","bccccccccccccccf","fccccccccccccccf","affffffffffffffa",".aaaaaaaaaaaaaa."],"pal":{"a":"#0b1a3a","b":"#9fd6ff","c":"#3aa0ff","d":"#e8f6ff","e":"#ffffff","f":"#1d5fb8"},"f":0},"shroom":{"n":"Cogumelo","rows":["................","......aaaa......","....aabbbbaa....","...abbccccbba...","..abcddcccccba..",".abccddcccddcba.","abccccccccddccea","abddccccccccccea","aeddcccddcccccea",".aeeeeeddeeeeea.","..aadddffddgaa..","...adaffffaga...","...adffhhffga...","...agggggggga...","..aiiiaaaaiiia..","...aaa....aaa..."],"pal":{"a":"#2a0f14","b":"#ff8a6a","c":"#e2402b","d":"#ffffff","e":"#9a1f1a","f":"#f5e6c8","g":"#c9b08a","h":"#c8343f","i":"#5a3a1a"},"f":0},"ghost":{"n":"Fantasma","rows":["................",".....aaaaaa.....","....abbbbbba....","...abccccccba...","..abccccccccda..","..abccccccccca..",".abccaccccaccda.",".abccaccccaccda.",".abceccaaccecca.","abcccccaacccccba","dccccccccccccccd","adccccccccccccda",".abccccccccccda.",".abcdcccdcccdca.",".abdadcdadcdadda",".ada.ada.ada.ada"],"pal":{"a":"#2a1840","b":"#ffffff","c":"#d8d4ff","d":"#9a90d8","e":"#ff9ab8"},"f":0},"bat":{"n":"Morcego","rows":["................","................","a..............a","ba....a..a....ac","bba..adaaea..abc","bfba.adddga.abfc","bffcadggggdabffc","bfffeghgghgebffc","bfcfcdggggebfcfc","bcaccdiggiebcacc","ca.acdggggeca.ac","ca..aeggggea..ac","a....aeggea....a","......aeea......",".......aa.......","................"],"pal":{"a":"#140a20","b":"#b88ae8","c":"#4e2a80","d":"#6e4a96","e":"#2a1840","f":"#8a55c8","g":"#4a2a6e","h":"#ff3b3b","i":"#ffffff"},"f":0},"goblin":{"n":"Goblin","rows":["......aaaa......",".....abbbba.....","a...abccccba...a","ba.abccccccda.ad","dbaabcccccccaabd","adbbccecceccbbda",".addccccccccdda.","..aadfcffcfdaaaa","....adddddda.agh","...aiiiiiiiiaagh","..adjkkkkkkkjbha",".abdaillmllkadda",".adaaikjjjjkjaa.","..a.ajjaaaajja..","...addda..addda.","....aaa....aaa.."],"pal":{"a":"#10200c","b":"#a8e070","c":"#6fbf3a","d":"#3e7a1e","e":"#ff3b3b","f":"#ffffff","g":"#d09a50","h":"#6e4419","i":"#b07a40","j":"#5a3a1a","k":"#8a5a2a","l":"#3a2414","m":"#ffd447"},"f":0},"plant":{"n":"Planta Carnívora","rows":["....aaaaaaa.....","...abbbbbbbaa...","..abcdccccdbba..",".abccccccccccea.",".abfgfgfgfgfea..",".abgggggggggea..",".aefgfgfgfgfea..","..aeeeeeeeeea...",".aaaaaahiaaa.aa.","ajja..ahia..ajja","klljaaahiaaajllk","akkljkahmajjlkka",".aakkkiiiikkkaa.","...anoooooona...","....annnnnna....",".....aaaaaa....."],"pal":{"a":"#200a10","b":"#ff7a9a","c":"#d8345a","d":"#ffe53a","e":"#8a1a36","f":"#ffffff","g":"#2a0a14","h":"#7ad88a","i":"#1e6a2a","j":"#8ae898","k":"#227a32","l":"#4cc05a","m":"#3aa64a","n":"#703a16","o":"#d88a4a"},"f":1},"skull":{"n":"Esqueleto","rows":[".....aaaaaa.....","....abbbbbba....","...abccccccba...","..abccccccccda..","..abaaccccaada..","..abaecccceada..","..adcccaacccda..","...adacacacaa..a","...aabdccdcaa.af","..adbcabcabbdafa",".adabdbccbddafa.",".adababcccadfa..",".aaadbcddcbda...","..a.abdaadda....","....ada..aba....","...adda..adda..."],"pal":{"a":"#1a1420","b":"#ffffff","c":"#f3efe2","d":"#b8b09a","e":"#ff2a4a","f":"#7d8aa3"},"f":0},"golem":{"n":"Golem","rows":[".....aaaaaa.....","....abbbbbba....","...abccccccda...","...abceccecda...","..aabdcffcdcaa..",".abbcabcccabbbaa","abcddbccccbddcbd","abcggbccccdggbcd","abcdabccfcdabcda","abcdabcfccdabcda","abcdabccccdabcca","bccdabccdccadccd","dddaabcdabcdaddd","aaa.abcdabccaaaa","...addddadddda..","....aaaa.aaaa..."],"pal":{"a":"#141418","b":"#b8bcc6","c":"#8a8e9a","d":"#555a68","e":"#5df5ff","f":"#3a3e48","g":"#2a7a30"},"f":0},"mimic":{"n":"Mímico","rows":["................","..aaaaaaaaaaaa..",".abccccccccccba.","acdceeeeeeeeefba","abgagagagagagaba",".aaaaaaaaaaaaaa.",".aaaahaaaahaaaa.",".aaaaaaiiaaaaaa.","acgagagiigagagba","acbbbbbbdbbbbbba","acfffffdjfffffba","accccccffcccccba","abeeeeecceeeeeba","afbbbbbbbbbbbbfa",".aaaaaaaaaaaaaa.","................"],"pal":{"a":"#1a0c06","b":"#6a3a14","c":"#d8904a","d":"#fff3a0","e":"#a8642a","f":"#c08a1a","g":"#ffffff","h":"#ff3b3b","i":"#ff4a6a","j":"#ffd447"},"f":0},"dragon":{"n":"Dragão","rows":["aba..........aca","acba.aaaaaa.abca",".accaddddddabca.","a.acdeeeeeedca.a","faadegaeeagehaai","ffaheeeeeeeehafi","fjfaheaeeaehafji","fjjiadbeebehafji","fjjidehhhhheiiji","fjiadhkkkkkhdaii","fiaadhkllllmdhai","ia.adhkllllmdhaa","a..adhmmmmmdha..","...adhaaaaadea..","..abhha...ahhba.","...aaa.....aaa.."],"pal":{"a":"#2a0f0f","b":"#ffffff","c":"#c9b08a","d":"#ff8a5a","e":"#e2402b","f":"#b83a2a","g":"#ffe53a","h":"#9a1f1a","i":"#5a0e0e","j":"#8a1c1c","k":"#ffd08a","l":"#ffa53a","m":"#d07018"},"f":0},"demon":{"n":"Rei Demônio","rows":["ab....b.b.....bc","cab..bdbdb...bac","bcabbdddddbbbacb",".bccefffffeeccb.","..beffffffffgb..","..behiffffihgb..","..bgffffffffgb..","..bbeafaafagbb..",".bjjggffffggjjb.","bjkljjggggjjklkb","jkgklljjjjlkekkb","kegbjlldlllbgekb","jggbjllllllkbggk","kkbbjllkkllkbbkk","bb.bkkkbbkkkb.bb","..bggggbbggggb.."],"pal":{"a":"#ffffff","b":"#120818","c":"#a89e80","d":"#ffd447","e":"#a870e0","f":"#7a3ab8","g":"#45207a","h":"#ffe53a","i":"#ff3b3b","j":"#4a4a5e","k":"#14141e","l":"#2a2a3a"},"f":0},"snail":{"n":"Caracol","rows":["................","................","................","..a..a...aaaa...",".abaaba.acccca..",".adaabaaceeeeca.","adfddfaceeggeeha","dfffffbcegeegeha","dfaffabcegegeeha","dffffffheggeehha","bffhhffdhhhhhaaa","abffffffdddddddb",".abbbbbbbbbbbbba","..aaaaaaaaaaaaa.","................","................"],"pal":{"a":"#2a1a0a","b":"#5a9a50","c":"#f09a60","d":"#d0f4c0","e":"#c86a3a","f":"#9ad88a","g":"#6a2a10","h":"#8a3f1a"},"f":0},"bee":{"n":"Abelha","rows":["....aa....aa....","...abba..abba...","..abccdaabccda..","..adccdaabccda..","...adddaaddda...","....aeeeeeea....","...aeffffffea...","..aggaggggagga..","..ahhhhhhhhhha..","..agggggggggga..","..ahhhhhhhhhha..","...agggggggga...","....ahhhhhha....",".....ageega.....","......aaaa......",".......aa......."],"pal":{"a":"#1a1408","b":"#ffffff","c":"#c8f0ff","d":"#8ac8e8","e":"#fff1a0","f":"#ffd23a","g":"#c8961a","h":"#1e180c"},"f":1},"frog":{"n":"Sapo","rows":["....a.a..a.a....","...ababaababa...","..accccaaccccaa.",".accaacdaccaacda",".adcaacdaccaadda",".aeddddeeddddea.","aefeeeeffeeeefga","aeffffffffffffga","aeaaaaaaaaaaaaga","aeghggggggggghga","egijiiiiiiiikega","gfkjjjjjjjjjkega","aegkkkkkkkkkgfaa","gggaaggggggaaggg","aaa..aaaaaa..aaa","................"],"pal":{"a":"#0c200c","b":"#ffd447","c":"#ffffff","d":"#c8d8e0","e":"#8ae888","f":"#4cbf4a","g":"#2a7a2a","h":"#ff6a8a","i":"#f4ffd0","j":"#d8f0a0","k":"#a8c870"},"f":0},"wolf":{"n":"Gato Sombrio","rows":["..a..........a..",".aba........aca.",".abba......abca.",".abdbaaaaaabdca.",".abeebbbbbbeeea.","abeeeeeeeeeeeeca","abeffeeeeeeffeca","abeafeccccefaeea","ceeeecggggceeeec","aceecghhhhgcceca",".accghhaahhgibca","..acghhhhhhhcca.","..acighhhhhgica.","...aciiiiiiica..","....acccccccca..",".....aaaaaaaa..."],"pal":{"a":"#14141e","b":"#9aa0c0","c":"#3e4260","d":"#ff7a9a","e":"#6a7090","f":"#ffe53a","g":"#ffffff","h":"#c8cce0","i":"#8a8eaa"},"f":0},"spider":{"n":"Aranha","rows":["................","..a..........a..",".aba..aaaa..aba.","a.abaaccccaaba.a","ba.abcddddccbaab","abaacddeedddfaba",".abbcddeeddddbba","aaaacddddddddfaa","bbbbcgdggdgddfbb","aaaacddddddddfaa",".abbfdhddddhfbba","abaaaffddddffaba","ba.abaaffffaabab","a.aba..aaaaaba.a",".aba........aba.","..a..........a.."],"pal":{"a":"#0a0610","b":"#463a5e","c":"#7a4a96","d":"#4a2a5e","e":"#ffd447","f":"#2a1438","g":"#ff3b3b","h":"#ffffff"},"f":1},"wisp":{"n":"Fogo-Fátuo","rows":["......aba...a...","...a.acda..aba..","..acaacdcaacba..","..accacdbcacba..","..acdcdbeccdda..",".acdddbfgbbddba.",".acddbfggffbdda.","acddbfgggggfbdba","acdbfgagggagecba","acdbfgagggagecba","acdbfgggggggecba","abddegggaageecba",".abdceeeeeeccba.","..abbccccccbba..","...aabbbbbbaa...",".....aaaaaa....."],"pal":{"a":"#06142a","b":"#1a4ab8","c":"#8ac0ff","d":"#3a8aff","e":"#6ac8f0","f":"#ffffff","g":"#b8f0ff"},"f":0},"knight":{"n":"Cavaleiro Negro","rows":["......abba......",".....abccca.....","....accaddaa....","...addddeedda...","..adeeeeeeeefa..","..adaaaaaaaafa..","..adaggaaggafa..","..adeeeeeeeefa..",".ahfeeeiieeefha.","ahjkdeeeeeeekjka","ahkdeeeieeeefkka","akadeeeeeeeefaka",".aadeeffffeefaa.","..afffaaaafffa..",".akkkka..akkkka.","..aaaa....aaaa.."],"pal":{"a":"#0a0a12","b":"#ff7a8a","c":"#8a1a2a","d":"#6a6e90","e":"#3a3e5a","f":"#1e2034","g":"#ff3b3b","h":"#c8ccdc","i":"#ffd447","j":"#8a8ea8","k":"#5a5e78"},"f":0},"eye":{"n":"Olho Maligno","rows":[".aba..aba..aba..","..aba.aba.aba...","..abaaabaaba....","...acccccccca...","..acddefeeddca..",".acddeghggeddea.",".acdfghhhhicfda.","acddeghccaicddea","acddeghaaaicddea","aedfdihhhhicddea",".acddciiiicdfea.",".aedddccccdddea.","..aeeeeeeeeeea..","...ajbjbbjbja...","..abbabaababba..",".abaaba..abaaba."],"pal":{"a":"#14061a","b":"#6a1a40","c":"#ffffff","d":"#f4eef0","e":"#c0b0bc","f":"#d8344a","g":"#8af0a0","h":"#3ac860","i":"#1a8a3a","j":"#e06a9a"},"f":0},"kraken":{"n":"Kraken","rows":["....abbbbbba....","...abccccccba...","..abccccccccda..","..abccccccccca..",".abccccccccccda.",".abceacccceacda.",".abceacccceacda.",".adccccccccccda.","a.abcccffcccca.a","badccdccdccdcdad","bdabdabdabdabdad","ddabdabdabdaddad","abadgadgadgagdad","addabagdagdadabd",".adaddadadaddada","..a.aadaadaaa.a."],"pal":{"a":"#140a1e","b":"#ff90a0","c":"#d8506a","d":"#8a2a40","e":"#ffe53a","f":"#ffffff","g":"#c06a80"},"f":0},"lich":{"n":"Lich","rows":[".....aaaa.abba..","....accccaabba..","...acddddcaaea..","..acdffffdfaea..","..acfggggffaea..","..afgabbahfaea..","..achiaaihfaea..","..acchahacfaea..",".acddcdcdddhea..","acddddjjdddcaea.","acfddddjddddfaea","afhcddddddddfaea",".acddddddddfaaea",".acddddddddda.a.","acddfddddfddca..","ffffaffffaffffa."],"pal":{"a":"#08060e","b":"#5dff9a","c":"#6a4a96","d":"#3a2a5e","e":"#5a4220","f":"#1e1438","g":"#ffffff","h":"#a8a090","i":"#e8e4d0","j":"#ffd447"},"f":0}};
+const HEROES={"war":[{"rows":[".......a..a..a..a.......","......abaacaacaaca......",".....acdacdccdcacca.....","....acddcddddddcddca....","...abddddddddddddddba...","....acdddddddddddddaa...","...acddddddddddddddbea..","...acddddddddddddddbefa.","..acdddbddbbbbddbddbefa.","..acdbbtbbttttbbtbbbefa.","..acbttsttssssttsttbefa.","..abtssgassssssagssSefa.","..abtssaassssssaassSefa.","..abtssaassssssaassSefa.","...aShsssssssssssshSefa.","....aSsssssiisssssSaefa.",".....aSSSssssssSSSaaefa.",".....aaaaSSSSSSaaaaaefa.","..aaafffjjjjjjjkgggaefa.",".affffaajllllllkfmmfefa.","afnnnnfajllllllloffaefa.","fnpqqpqfkkkkkkkkkroaefaa","fnquvnqfwwwvvwwwwovvvvvv","fnpvvnqfjjjjjjjjktSawaaa","fqpnnpqfjllllllllSSawa..","afqqqqfajllllllllkaava..",".affffaakkkkkkkkkka.a...","..aaaaaxxxyaaxxxya......","......axzzyaaxzzya......","......ayyyyaayyyya......",".....aAAAABaaAAAABa.....",".....aBBBBBaaBBBBBa....."],"pal":{"a":"#1b1326","b":"#14101a","c":"#4a4058","d":"#2a2230","e":"#b8c4d8","f":"#7d8aa3","g":"#ffffff","h":"#ff9a9a","i":"#a0384a","j":"#ff6b6b","k":"#8a1f2a","l":"#c8343f","m":"#c8d2e0","n":"#c08a50","o":"#7a1a24","p":"#9a6a3a","q":"#6a4420","r":"#e05058","u":"#fff3a0","v":"#c08a1a","w":"#43280f","x":"#555c80","y":"#262a44","z":"#3a4060","A":"#7a5232","B":"#3a2414"}},{"rows":["..........aaaa..........",".........abbbca.........","......aaadccccdaaa..a...",".....adddeddddedddaafa..","....adeeeeeeeeeeeedafga.","...adeeeggeeeeggeeegfga.","...adeeehhdeeehhdeegfga.","..adegggggggggggggggfga.","..adgiijiijjjjiijijgfga.","..adgjjtjjttttjjtjjgfga.","..agjttsttssssttsttjfga.","..ajtssdassssssadssSfga.","..ajtssaassssssaassSfga.","..ajtssaassssssaassSfga.","...aSksssssssssssskSfga.","....aSsssssllsssssSafga.",".....aSSSssssssSSSaafga.","aaaaaaaaaSSSSSSaaaaafga.","dggggggadgmmmndddddafga.","gmmnmngadgmoondegeegfga.","gmnpnngadgmoondeqdggfga.","gmhrhngaggnnnnggggqafgaa","gmnhmngauuuhhuuuuhhhhhhh","gnohmngadgmmmnddgtSauaaa","agmmngaadgmoondeeSSaua..","agnongaadgmoondeegaaha..",".agnga.aggnnnngggga.a...","..aga..avvwaavvvwa......","...a..awwwwaawwwwa......",".....agggga..agggga.....",".....axxxxyaaxxxxya.....",".....ayyyyyaayyyyya....."],"pal":{"a":"#1b1326","b":"#ff7a8a","c":"#8a1a2a","d":"#ffffff","e":"#c8d2e0","f":"#b8c4d8","g":"#7d8aa3","h":"#c08a1a","i":"#4a4058","j":"#14101a","k":"#ff9a9a","l":"#a0384a","m":"#6f8cff","n":"#1a3790","o":"#2f5bd0","p":"#fff3a0","q":"#6d7a94","r":"#ffd447","u":"#43280f","v":"#555c80","w":"#262a44","x":"#7a5232","y":"#3a2414"}},{"rows":["...........aa......aba..",".a.......aacdaa....abaa.","aea...aaaeeddeeaaa.afgha","aheaaaeeeiieeiieeeaafgba",".aheheiiiiiiiiiiiiebfja.","..aheiiiikkkkkkiiiikfga.","...aeiiiidccccdeiiikfgba","..aeikkkkkbddbkkkkkbfja.","..aekllmllmmmmllmlmkfga.","..aekmmtmmttttmmtmmkfgba","..akmttsttssssttsttbfja.","..amtsseassssssaessSfga.","..amtssaassssssaassSfgba","..amtssaassssssaassbfja.","...aSnssssssssssssnSfga.","....aSsssssoosssssSafgba","aaaaaaSSSssssssSSSabfja.","cddddddaaSSSSSSaaaaafga.","dekdekdaekkeekkeeeedfgba","dkkckkdaeddekcdeikibfja.","dddpdddaeedkkdeiikkkfja.","dekdekdakkkcckkkkkkafjaa","dkkdekdadqddddqdqddddddd","adkdkdaaeeeeeeeektSaqaaa","adkdkdaaeikiikiiiSSaqa..",".addda.aekdekdeiikaada..","..ada..aeidkkdeiika.a...","...a..akkkkaakkkka......","......arrrraarrrra......",".....akkkka..akkkka.....",".....adddddaaddddda.....",".....akkkkkaakkkkka....."],"pal":{"a":"#1b1326","b":"#fff4a0","c":"#fff3a0","d":"#c08a1a","e":"#ffffff","f":"#ffe680","g":"#fff8c0","h":"#c8d8f0","i":"#eef2fa","j":"#e0b830","k":"#a8b4cc","l":"#4a4058","m":"#14101a","n":"#ff9a9a","o":"#a0384a","p":"#ffd447","q":"#43280f","r":"#7d8aa3"}}],"mag":[{"rows":["........aabbbbaa....aa..",".......abbccccbba..adea.","......abccccccccba.aefea",".....abccccccccccba.aea.","....abccccccccccccbaaga.","...abccchhhhhhhhccchaia.","aaaabcccggggggggbcccaiaa","hbbbhhhhhhhhhhhhhhhhhibh","ahhhjjjkjjkkkkjjkjjjhiha",".aajlkktkkttttkktkklkia.","..ajkttsttssssttsttkkia.","..aktssjassssssajssSkia.","..aktssaassssssaassSkia.","..aktssaassssssaassSkia.","..ajSmssssssssssssmSkia.","..ajkSsssssnnsssssSjkia.","..ajkaSSSssssssSSSajkia.","..akkaaaaSSSSSSaaaakkia.","...aa.aooopoopoopa.aaia.",".....apoqpgopgoqpoa.aia.","....aopoqpgopgoqpopaaia.","....aopoqpgopgoqpopaaia.","....appoqpgopgoqpppaaia.","....atSoqpgopgoqptSaaia.","....aSSoqpgopgoqqSSaaia.",".....aoqqpgopgoqqpa.aia.",".....aoqqpgopgoqqpa.aia.",".....aoqqpgopgoqqpa.aia.",".....aoqqpgopgoqqqa.aia.","....apppppgppgpppppaaia.","....aggggggggggggggaaia.",".....aaaaaaaaaaaaaa..a.."],"pal":{"a":"#1b1326","b":"#9a6ae8","c":"#6a3ab8","d":"#d0ffff","e":"#20a8c8","f":"#c0f0ff","g":"#c08a1a","h":"#40207a","i":"#6e4419","j":"#ffffff","k":"#8f9fd6","l":"#c9d6ff","m":"#ff9a9a","n":"#a0384a","o":"#6f8cff","p":"#1f2f86","q":"#3550c8"}},{"rows":["..........abca.....adda.",".........abecfa...adaa.a","........abeeghga..adagad",".......abeeebgbba.adaa.a","......abeeeeebeeba.adda.",".....abeeeeeeeeeeba.aia.","....accccccccccccccaaia.","aaaaddddddddddddddddaiaa","cccccccccccccccccccccicc","aaajjkktkkttttkktkkjkiaa","..ajkttsttssssttsttkkia.","..aktssfassssssafssSkia.","..aktssaassssssaassSkia.","..aktssaassssssaassSkia.","..ajSlsssssssssssslSkia.",".ajmkSsssssnnsssssSkkia.",".ajkooSSSssssssSSSopkia.",".akkoqopaSSSSSSapoqpkia.","..aappprrrqrrqrrqpppaia.","...aqrqroqdrqdroqrrqaia.","....arqroqdrqdroqrqaaia.","....arqqqqdqqdqqqrqaaia.","....aqqddddddddddqqaaia.","....atSrrqdrqdrrqtSaaia.","....aSSroqdrqdrooSSaaia.",".....arooqdrqdrooqa.aia.",".....arooqdrqdrooqa.aia.",".....arooqdrqdrooqa.aia.",".....arooqdrqdroooa.aia.","....aqqqqquqquqqqqqaaia.","....addddddddddddddaaia.",".....aaaaaaaaaaaaaa..a.."],"pal":{"a":"#1b1326","b":"#6a3aa8","c":"#22104a","d":"#c08a1a","e":"#3a1a6a","f":"#ffffff","g":"#c8a020","h":"#ffe066","i":"#1e1428","j":"#4a4a5e","k":"#14141e","l":"#ff9a9a","m":"#2a2a3a","n":"#a0384a","o":"#4a2a8a","p":"#160a30","q":"#2a1458","r":"#7a5ac0","u":"#fff3a0"}},{"rows":[".........abbbba.....aca.",".........acccca....acbca","........adeeeeda..abfgcb",".......adhceedhca..abcba","......acdhceedhcca..aba.",".a...acedhceedhceca..a..","afa.addddiddddiddddaaha.","aaaahhhhhhhhhhhhhhhhahaa","dddddddddddddddddddddhdd","aaaccjjtjjttttjjtjjcjhaa",".ackjttsttssssttsttjjha.",".acjtsscassssssacssSjia.",".acjtssaassssssaassSjifa",".afjtssaassssssaassSjha.",".ackSlsssssssssssslSjha.","aackjSsssssmmsssssScjha.","fackjnSSSssssssSSSocjha.","ajjjjnnohSSSSSShonpjjhja",".aaaooocccdhhdccdoooahaf","...adcdcedhcdhcedccdahaa","....acdcedhcdhcedcdaaha.","....acddddiddidddcdaaha.","....addhhhqhhqhhhddaaha.",".a..atSccdhcdhccdtSaaha.","afa.aSScedhcdhceeSSaaha.",".a...aceedhcdhceeda.aha.",".....aceedhcdhceeea.aha.","....aceeedhcdhceeedaaha.","....aceeedhcdhceeeeaaha.","...addddddiddiddddddaha.","...ahhhhhhhhhhhhhhhhaha.","....aaaaaaaaaaaaaaaa.a.."],"pal":{"a":"#1b1326","b":"#3ab8e0","c":"#ffffff","d":"#a8b4cc","e":"#eef2fa","f":"#9af8ff","g":"#c0f0ff","h":"#c08a1a","i":"#fff3a0","j":"#a8b0c8","k":"#e8ecf8","l":"#ff9a9a","m":"#a0384a","n":"#6f8cff","o":"#1a3790","p":"#2f5bd0","q":"#ffd447"}}],"mon":[{"rows":["........................","........................",".......aaaaaaaaaa.......",".....aabbbbbbbbbbaa.....","....abbccccccccccbba....","...abccccccccccccccda...","...abccccccccccccccca...","..adddddddddddddddddda..","..aeeeeeeeeeeeeeeeeeffa.","..abdttdddttttdddtSdegea","..abdtstttsssstttssdaeea","..adtsshassssssahssSdaa.","..adtssaassssssaassSda..","..adtssaassssssaassSda..","...aSissssssssssssiSa...","....aSsssssjjsssssSa....",".....aSSSssssssSSSa.....","......aaaSSSSSSaaa......","......akkkkllkkkla......",".....aSkmmlSSlmmlta.....","....atSkmlSklSkmltSa....","....aSSlllSllSlllSSa....","....annddddddddddnna....","....atSkkkkkkkkkltSa....","....aSSkmmmmmmmmmSSa....",".....akmmmmmmmmmmla.....",".....alllllllllllla.....","......akkklaakkkla......","......allllaalllla......","......annnnaannnna......",".....aoooopaaoooopa.....",".....apppppaapppppa....."],"pal":{"a":"#1b1326","b":"#4a4058","c":"#2a2230","d":"#16101c","e":"#8a1a2a","f":"#ff7a8a","g":"#d8344a","h":"#ffffff","i":"#ff9a9a","j":"#a0384a","k":"#ffc06a","l":"#a85a0c","m":"#e98a1e","n":"#bfb39a","o":"#b07a40","p":"#5a3a1a"}},{"rows":["......a...a..a...a......",".....aba.abaaba.aca.....",".....abbabdbbdbabda.....","....abddbddddddbddba....","...abddddddddddddddba...","..abddddddddddddddddca..","..abddddddddddddddddca..","..accccccccccccccccccaa.","..aeeeeeeeeeeeeeeeeefffa","..abcttcccttttccctScegge","..abctstttsssstttsscaeee","..actsshassssssahssScaaa","..actssaassssssaassSca..","..actssaassssssaassSca..","...aSissssssssssssiSa...","....aSsssssjjsssssSa....",".....aSSSssssssSSSa.....","......aaaSSSSSSaaa......",".....attkllllllktta.....","....atssmknnnnkmtsta....","...atsssSlknnkmtsssSa...","...aSSSSSmmkkmmSSSSSa...","...afeoppppppppppofea...","...afeolllllllllmofea...","...aeeolnnnnnnnnnoeea...","....aalnnnnnnnnnnmaa....",".....ammmmmmmmmmmma.....","......aqqqraaqqqra......","......arrrraarrrra......","......aooooaaooooa......",".....abbbbcaabbbbca.....",".....acccccaaccccca....."],"pal":{"a":"#1b1326","b":"#4a4058","c":"#16101c","d":"#2a2230","e":"#8a1a2a","f":"#ff7a8a","g":"#d8344a","h":"#ffffff","i":"#ff9a9a","j":"#a0384a","k":"#8a5a2a","l":"#c0404a","m":"#5a0f18","n":"#8a1f2a","o":"#bfb39a","p":"#c08a1a","q":"#4a4a5e","r":"#14141e"}},{"rows":["..........abba..........",".........abccda.........",".......aaabcccaaa.......",".....aabbbccccbbbaa.....","....abbccccccccccbba....","...abccccccccccccccda...","...abccccccccccccccca...","..adddddddddddddddddda..","..aeeeeeeeeeeeeeeeeeea..",".afbdttdddttttdddtSbbfa.",".afcdtstttsssstttssdcfa.","afadtssgassssssagssSdafa","afadtssaassssssaassSdafa",".aadtssaassssssaassSdaa.","afadShsssssssssssshSbafa",".abdaSsssssiisssssSabda.",".abdaaSSSssssssSSSaadda.",".ada..aaaSSSSSSaaa..ada.",".afa..aggggjjgggja..afa.","..afaaSgkkjeejkkjtaafa..","..afatSgkjegjegkjtSafa..","...aaSSjjjejjejjjSSaa...","...aaleeeeeeeeeeeleaa...","..afaeegggggggggjeeafa..","...afSSgkkkkkkkkkSSfa...","....aagkkkkkkkkkkjaa....","...afajjjjjjjjjjjjafa...","....a.agggjaagggja.a....","...afaajjjjaajjjjaafa...","...aaaaeeeeaaeeeeaaaa...","..afffmmmmnaammmmmfffa..","...aaannnnnaannnnnaaa..."],"pal":{"a":"#1b1326","b":"#4a4058","c":"#2a2230","d":"#16101c","e":"#c08a1a","f":"#6ad8ff","g":"#ffffff","h":"#ff9a9a","i":"#a0384a","j":"#bfb39a","k":"#f2ead8","l":"#fff3a0","m":"#b07a40","n":"#5a3a1a"}}],"bar":[{"rows":[".................abca...","........aaaaaaaa.aca....","......aadddddddeabca....",".....addffffffffcca.....","....adffffffffffddda....","...adffffffffffffffda...","..aeeeeeeeeeeeeeeeeeea..","...agggggggggggggggga...","..aghhihhhiiiihhhihhia..","..aghitiiittttiiitihia..","..agitstttsssstttstiia..","..aitssjassssssajssSia..","..aitssaassssssaassSia..","..aitssaassssssaassSia..","..agSksssssssssssskSia..","..aiiSsssssllsssssSgia..","...aiaSSSssssssSSSaia...","....a.aaaSSSSSSaaa.a....","......aeeeeeedddea......",".......aaaammdffeja.....",".........amaadffejna....",".......aama.aeeeejna....","......aoooa.ammmmnna....",".....aopqpraadddetSa....","....aopqqqraadfffSSa....","....arppqpraadfffea.....",".....arrrra.aeeeeea.....","......ajjjnaajjjna......","......ajuunaajuuna......","......annnnaannnna......",".....avvvvmaavvvvma.....",".....ammmmmaammmmma....."],"pal":{"a":"#1b1326","b":"#ff9ab0","c":"#b02040","d":"#6fe39a","e":"#1a6b3a","f":"#2ea65c","g":"#fff0a8","h":"#f2c64a","i":"#b88a1e","j":"#ffffff","k":"#ff9a9a","l":"#a0384a","m":"#43280f","n":"#bfb39a","o":"#f0b060","p":"#c98a3e","q":"#3a1f0a","r":"#7a4a1a","u":"#f2ead8","v":"#8a5a30"}},{"rows":["...............abcaaa...","........aaaaaa.acaaaa...","......aadddddeabcaaa....",".....addffffffccaaa.....","....adffffffffdddfda....","aaaadffffffffffffffdaaaa","edddeeeeeeeeeeeeeeeeddde","aeeeggggggggggggggggeeea",".aaghhihhhiiiihhhihhiaa.","..aghitiiittttiiitihia..","..agitstttsssstttstiia..","..aitssjassssssajssSia..","..aitssaassssssaassSia..","..aitssaassssssaassSia..","..agSksssssssssssskSia..","..agiSsssssllsssssSgia..","..agiaSSSssssssSSSaiia..","..aia.aaaSSSSSSaaa.aia..","...a..ammmmmmjjmma..a...",".......aaaaccjmnoja.....",".........acaamnpojma....",".......aaca.acooojma....","......aqqqa.arrrrmma....",".....aquvuwaacnnotSa....","....aquvvvwaamnppSSa....","....awuuvuwaamnppoa.....",".....awwwwa.amooooa.....","......axxxyaaxxxya......","......axzzyaaxzzya......","......ayyyyaayyyya......",".....aAAAAraaAAAAra.....",".....arrrrraarrrrra....."],"pal":{"a":"#1b1326","b":"#fff3a0","c":"#c08a1a","d":"#8a5ac0","e":"#3a1660","f":"#5a2a8a","g":"#fff0a8","h":"#f2c64a","i":"#b88a1e","j":"#ffffff","k":"#ff9a9a","l":"#a0384a","m":"#bfb39a","n":"#ff6b6b","o":"#8a1f2a","p":"#c8343f","q":"#d8904a","r":"#43280f","u":"#a8642a","v":"#3a1f0a","w":"#6a3a14","x":"#5a4a6a","y":"#1e1428","z":"#3a2a4a","A":"#8a5a30"}},{"rows":["...........abbaaaa......","........aaacccbaaaa.....","......aaddddaaccaaa.....",".....addeeeedddddea.....",".a..affffffffffffffa....","agaaffffffffffffffffaaaa","ffgdffffffffffffffffddff","afffhhhhhhhhhhhhhhhhfffa",".aahiijiiijjjjiiijiihaa.","..ahijtjjjttttjjjtjiiga.","..ahjtstttsssstttstjiaga","aahjtssbassssssabssShja.","gahjtssaassssssaassShja.","aahjtssaassssssaassShja.",".ahiSksssssssssssskShia.",".ahijSsssssllsssssShiiga",".ahijaSSSssssssSSSajija.",".ajja.aaaSSSSSSaaaaajja.","..afa.afamnbbnmmmmfaaa..",".afofafofnbpppmqqqmfa...",".afabooafnbffpmqqqqna...",".afaoaoadnppppnnqqqna...",".afaoaoafffdffffmqnna...","..afoaofanbffpmmqntSa...","...afdfaanbbbpmqqfSa....","....afmmmnbrrpmqqmfa....","....amqqqnbrrpmqqqna....","....annnnnppppnnnnna....",".....aauuuvaauuuvaa.....","......avvvvaavvvva......",".....auuuuvaauuuuva.....",".....avvvvvaavvvvva....."],"pal":{"a":"#1b1326","b":"#ffffff","c":"#c8d8f0","d":"#fff3a0","e":"#ffd447","f":"#c08a1a","g":"#ffe066","h":"#fff0a8","i":"#f2c64a","j":"#b88a1e","k":"#ff9a9a","l":"#a0384a","m":"#8a5ac0","n":"#3a1660","o":"#e0d0a0","p":"#bfb39a","q":"#5a2a8a","r":"#f2ead8","u":"#4a4a5e","v":"#14141e"}}]};
+const HBASE={};
+const SKINS=[["#ffe3cc","#e9b59a","#fff3e8"],["#f7c9a0","#d89a70","#ffe0c4"],["#e2a77a","#b97b52","#f2c49c"],["#b97a4c","#8a5333","#d49a6a"],["#8c5734","#61391f","#a8724a"],["#5e3a24","#3d2414","#7a5038"]];
+const EVO_LV=[1,10,20];
+const EVO={war:["Guerreiro","Cavaleiro","Paladino"],mag:["Mago","Feiticeiro","Arquimago"],mon:["Monge","Mestre Ki","Grão-Mestre"],bar:["Bardo","Menestrel","Maestro Lendário"]};
+const stageOf=L=>L>=20?2:L>=10?1:0;
+const HEROES_F={"war":[{"rows":[".................abbba..","................abcccda.","........aaaaaaaadddddaa.","......aabbbbbbbbaaaaabda",".....abbccccccccbba.abda","....abccccccccccccbabcda","...abccccccccccccccbddda","...abccccccccccccccdefda","..abcccdccddddccdccdefda","..abcddtddttttddtbddefda","..abdtasttssssttsatdefda","..adtsagassssssagasSefda","..adtssaassssssaassSefda","..adtssaassssssaassSefda","..abShsssssssssssshSefda","..addSsssssiisssssSdefda","...aaaSSSssssssSSSaaefda",".....aaaaSSSSSSaaaaaefda","..aaafffjjjjjjjkgggaefda",".affffaajllllllkfmmfefa.","afnnnnfajllllllloffaefa.","fnpqqpqfkkkkkkkkkroaefaa","fnquvnqfwwwvvwwwwovvvvvv","fnpvvnqfjjjjjjjjktSawaaa","fqpnnpqfjllllllllSSawa..","afqqqqfjllllllllljaava..",".affffjlllllllllllkaa...","..aaajllllllllllllka....","....akkkkkkkkkkkkkka....",".....aaxxxxaaxxxxaa.....",".....ayyyyzaayyyyza.....",".....azzzzzaazzzzza....."],"pal":{"a":"#1b1326","b":"#f07850","c":"#c8402a","d":"#8a2414","e":"#b8c4d8","f":"#7d8aa3","g":"#ffffff","h":"#ff9a9a","i":"#d0485a","j":"#ff6b6b","k":"#8a1f2a","l":"#c8343f","m":"#c8d2e0","n":"#c08a50","o":"#7a1a24","p":"#9a6a3a","q":"#6a4420","r":"#e05058","u":"#fff3a0","v":"#c08a1a","w":"#43280f","x":"#262a44","y":"#7a5232","z":"#3a2414"}},{"rows":["..........aaaa..........",".........abbbca.........","......aaadccccdaaa..a...",".....adddeddddedddaafa..","....adeeeeeeeeeeeedafga.","...adeeeggeeeeggeeegfga.","...adeeehhdeeehhdeegfga.","..adegggggggggggggggfga.","..adgiijiijjjjiijijgfga.","..adgjjtjjttttjjtijgfga.",".aigjtasttssssttsatjfga.",".aijtsadassssssadasSfga.",".aijtssaassssssaassSfga.",".aijtssaassssssaassSfga.",".aikSlsssssssssssslSfga.",".aikjSsssssmmsssssSjfga.",".aikjaSSSssssssSSSajfga.","aajjjaaaaSSSSSSaaaajfga.","dggggggadgnnnodddddjfga.","gnnonogadgnppodegeegfga.","gnoqoogadgnppoderdggfga.","gnhuhogaggooooggggrjfgaa","gnohnogavvvhhvvvvhhhhhhh","gophnogadgnnnoddgtSjvjaa","agnnogaadgnppodeeSSava..","agopognodgnppodeegaaha..",".agognppggnpppggggoaa...","..aganppnnppppnnnnoa....","...aaooooooooooooooa....",".....aggwwaaaawwgga.....",".....axxxxyaaxxxxya.....",".....ayyyyyaayyyyya....."],"pal":{"a":"#1b1326","b":"#ff7a8a","c":"#8a1a2a","d":"#ffffff","e":"#c8d2e0","f":"#b8c4d8","g":"#7d8aa3","h":"#c08a1a","i":"#f07850","j":"#8a2414","k":"#c8402a","l":"#ff9a9a","m":"#d0485a","n":"#6f8cff","o":"#1a3790","p":"#2f5bd0","q":"#fff3a0","r":"#6d7a94","u":"#ffd447","v":"#43280f","w":"#262a44","x":"#7a5232","y":"#3a2414"}},{"rows":["...........aa......aba..",".a.......aacdaa....abaa.","aea...aaaeeddeeaaa.afgha","aheaaaeeeiieeiieeeaafgba",".aheheiiiiiiiiiiiiebfja.","..aheiiiikkkkkkiiiikfga.","...aeiiiidccccdeiiikfgba","..aeikkkkkbddbkkkkkbfja.","..aekllmllmmmmllmlmkfga.","..aekmmtmmttttmmtlmkfgba",".alkmtasttssssttsatbfja.",".almtsaeassssssaeasSfga.",".almtssaassssssaassSfgba",".almtssaassssssaassbfja.",".alnSossssssssssssoSfga.",".alnmSsssssppsssssSmfgba","aammmaSSSssssssSSSabfja.","cddddddaaSSSSSSaaaamfga.","dekdekdaekkeekkeeeedfgba","dkkckkdaeddekcdeikibfja.","dddqdddaeedkkdeiikkkfja.","dekdekdakkkcckkkkkkmfjaa","dkkdekdadrddddrdrddddddd","adkdkdaaeeeeeeeektSmrmaa","adkdkdaaeikiikiiiSSara..",".adddaeeikdekdeiieaada..","..adaeiiiideideiiikaa...","...aaeiiiieiieiiiika....","....akiikkkkkkkkiika....",".....akkuuaaaauukka.....",".....adddddaaddddda.....",".....akkkkkaakkkkka....."],"pal":{"a":"#1b1326","b":"#fff4a0","c":"#fff3a0","d":"#c08a1a","e":"#ffffff","f":"#ffe680","g":"#fff8c0","h":"#c8d8f0","i":"#eef2fa","j":"#e0b830","k":"#a8b4cc","l":"#f07850","m":"#8a2414","n":"#c8402a","o":"#ff9a9a","p":"#d0485a","q":"#ffd447","r":"#43280f","u":"#7d8aa3"}}],"mag":[{"rows":["........aabbbbaa....aa..",".......abbccccbba..adea.","......abccccccccba.aefea",".....abccccccccccba.aea.","....abccccccccccccbaaga.","...abccchhhhhhhhccchaia.","aaaabcccggggggggbcccaiaa","hbbbhhhhhhhhhhhhhhhhhibh","ahhhjjjkjjkkkkjjkjjjhiha",".aajlkktkkttttkktjklkia.",".ajlktasttssssttsatkkia.",".ajktsamassssssamasSkia.",".ajktssaassssssaassSkia.",".ajktssaassssssaassSkia.",".ajlSnssssssssssssnSkia.",".ajlkSsssssoosssssSjkia.",".ajlkaSSSssssssSSSajkia.",".ajlkaaaaSSSSSSaaaajkia.",".ajlkaapppqppqppqaajkia.",".ajlkaqprqgpqgprqpajkia.",".ajlkpqprqgpqgprqpqjkia.",".ajlkpqprqgpqgprqpqjkia.",".ajlkqqprqgpqgprqqqjkia.",".akkktSprqgpqgprqtSkkia.","..aaaSSprqgpqgprrSSaaia.",".....aprrqgpqgprrqa.aia.",".....aprrqgpqgprrqa.aia.",".....aprrqgpqgprrqa.aia.",".....aprrqgpqgprrra.aia.","....aqqqqqgqqgqqqqqaaia.","....aggggggggggggggaaia.",".....aaaaaaaaaaaaaa..a.."],"pal":{"a":"#1b1326","b":"#9a6ae8","c":"#6a3ab8","d":"#d0ffff","e":"#20a8c8","f":"#c0f0ff","g":"#c08a1a","h":"#40207a","i":"#6e4419","j":"#e0c8ff","k":"#7050a8","l":"#b08ae0","m":"#ffffff","n":"#ff9a9a","o":"#d0485a","p":"#6f8cff","q":"#1f2f86","r":"#3550c8"}},{"rows":["..........abca.....adda.",".........abecfa...adaa.a","........abeeghga..adagad",".......abeeebgbba.adaa.a","......abeeeeebeeba.adda.",".....abeeeeeeeeeeba.aia.","....accccccccccccccaaia.","aaaaddddddddddddddddaiaa","cccccccccccccccccccccicc","aaajjkktkkttttkktjkjkiaa",".ajlktasttssssttsatkkia.",".ajktsafassssssafasSkia.",".ajktssaassssssaassSkia.",".ajktssaassssssaassSkia.",".ajlSmssssssssssssmSkia.",".ajlkSsssssnnsssssSkkia.",".ajkooSSSssssssSSSopkia.",".ajkoqopaSSSSSSapoqpkia.",".ajkppprrrqrrqrrqpppkia.",".ajlqrqroqdrqdroqrrqkia.",".ajlkrqroqdrqdroqrqjkia.",".ajlkrqqqqdqqdqqqrqjkia.",".ajlkqqddddddddddqqjkia.",".akkktSrrqdrqdrrqtSkkia.","..aaaSSroqdrqdrooSSaaia.",".....arooqdrqdrooqa.aia.",".....arooqdrqdrooqa.aia.",".....arooqdrqdrooqa.aia.",".....arooqdrqdroooa.aia.","....aqqqqquqquqqqqqaaia.","....addddddddddddddaaia.",".....aaaaaaaaaaaaaa..a.."],"pal":{"a":"#1b1326","b":"#6a3aa8","c":"#22104a","d":"#c08a1a","e":"#3a1a6a","f":"#ffffff","g":"#c8a020","h":"#ffe066","i":"#1e1428","j":"#4a4058","k":"#14101a","l":"#2a2230","m":"#ff9a9a","n":"#d0485a","o":"#4a2a8a","p":"#160a30","q":"#2a1458","r":"#7a5ac0","u":"#fff3a0"}},{"rows":[".........abbbba.....aca.",".........acccca....acbca","........adeeeeda..abfgcb",".......adhceedhca..abcba","......acdhceedhcca..aba.",".a...acedhceedhceca..a..","afa.addddiddddiddddaaha.","aaaahhhhhhhhhhhhhhhhahaa","dddddddddddddddddddddhdd","aaaccjjtjjttttjjtcjcjhaa",".ackjtasttssssttsatjjha.",".acjtsacassssssacasSjia.",".acjtssaassssssaassSjifa",".afjtssaassssssaassSjha.",".ackSlsssssssssssslSjha.","aackjSsssssmmsssssScjha.","fackjnSSSssssssSSSocjha.","ajkkjnnohSSSSSShonpjjhja",".acjooocccdhhdccdooojhaf",".ackdcdcedhcdhcedccdjhaa",".ackjcdcedhcdhcedcdcjha.",".ackjcddddiddidddcdcjha.",".ackjddhhhqhhqhhhddcjha.",".ajjjtSccdhcdhccdtSjjha.","afaaaSScedhcdhceeSSaaha.",".a...aceedhcdhceeda.aha.",".....aceedhcdhceeea.aha.","....aceeedhcdhceeedaaha.","....aceeedhcdhceeeeaaha.","...addddddiddiddddddaha.","...ahhhhhhhhhhhhhhhhaha.","....aaaaaaaaaaaaaaaa.a.."],"pal":{"a":"#1b1326","b":"#3ab8e0","c":"#ffffff","d":"#a8b4cc","e":"#eef2fa","f":"#9af8ff","g":"#c0f0ff","h":"#c08a1a","i":"#fff3a0","j":"#c0b8d8","k":"#f4f0ff","l":"#ff9a9a","m":"#d0485a","n":"#6f8cff","o":"#1a3790","p":"#2f5bd0","q":"#ffd447"}}],"mon":[{"rows":[".................abbba..","................abcccda.","........aaaaaaaadddddaa.","......aabbbbbbbbaaaaabda",".....abbccccccccbba.abda","....abccccccccccccbabcda","...abccccccccccccccbccda","..adddddddddddddddddddda","..aeeeeeeeeeeeeeeeeeffda","..abdttdddttttdddtSbegea","..abdtatttsssstttasdbeea","..adtsahassssssahasSbbda","..adtssaassssssaassSbcda","..adtssaassssssaassSbcda","..abSissssssssssssiSbcda","..addSsssssjjsssssSdccda","...aaaSSSssssssSSSaadcda","......aaaSSSSSSaaa..abda","......akkkkllkkkla..adda",".....aSkmmlSSlmmlta..aa.","....atSkmlSklSkmltSa....","....aSSlllSllSlllSSa....","....annoooooooooonna....","....atSkkkkkkkkkltSa....","....aSSkmmmmmmmmmSSa....",".....akmmmmmmmmmmla.....",".....alllllllllllla.....","......akkklaakkkla......","......allllaalllla......","......annnnaannnna......",".....appppqaappppqa.....",".....aqqqqqaaqqqqqa....."],"pal":{"a":"#1b1326","b":"#4a4058","c":"#2a2230","d":"#14101a","e":"#8a1a2a","f":"#ff7a8a","g":"#d8344a","h":"#ffffff","i":"#ff9a9a","j":"#d0485a","k":"#ffc06a","l":"#a85a0c","m":"#e98a1e","n":"#bfb39a","o":"#16101c","p":"#b07a40","q":"#5a3a1a"}},{"rows":[".................abbba..","................abcccda.","........aaaaaaaadddddaa.","......aabbbbbbbbaaaaabda",".....abbccccccccbba.abda","....abccccccccccccbabcda","...abccccccccccccccbccda","..adddddddddddddddddddda","..aeeeeeeeeeeeeeeeeefffa","..abdttdddttttdddtSbegge","..abdtatttsssstttasdbeee","..adtsahassssssahasSbbda","..adtssaassssssaassSbcda","..adtssaassssssaassSbcda","..abSissssssssssssiSbcda","..addSsssssjjsssssSdccda","...aaaSSSssssssSSSaadcda","......aaaSSSSSSaaa..abda",".....attkllllllktta.adda","....atssmknnnnkmtsta.aa.","...atsssSlknnkmtsssSa...","...aSSSSSmmkkmmSSSSSa...","...afeoppppppppppofea...","...afeolllllllllmofea...","...aeeolnnnnnnnnnoeea...","....aalnnnnnnnnnnmaa....",".....ammmmmmmmmmmma.....","......aqqqraaqqqra......","......arrrraarrrra......","......aooooaaooooa......",".....abbbbuaabbbbua.....",".....auuuuuaauuuuua....."],"pal":{"a":"#1b1326","b":"#4a4058","c":"#2a2230","d":"#14101a","e":"#8a1a2a","f":"#ff7a8a","g":"#d8344a","h":"#ffffff","i":"#ff9a9a","j":"#d0485a","k":"#8a5a2a","l":"#c0404a","m":"#5a0f18","n":"#8a1f2a","o":"#bfb39a","p":"#c08a1a","q":"#4a4a5e","r":"#14141e","u":"#16101c"}},{"rows":["..........abba..........",".........abccda.........",".......aaabcccaaa.......",".....aabbbccccbbbaa.....","....abbccccccccccbba....","...abccccccccccccccda...","...abccccccccccccccca...","..adddddddddddddddddda..","..aeeeeeeeeeeeeeeeeeea..",".afbdttdddttttdddtSbbfa.",".afcdtatttsssstttasdcfa.","afcdtsagassssssagasSbcfa","afcdtssaassssssaassSbcfa",".abdtssaassssssaassSbca.","afccShsssssssssssshSbcfa",".abcdSsssssiisssssSbcda.",".abcdaSSSssssssSSSabcda.",".abcdaaaaSSSSSSaaaabcda.",".afcdaaggggjjgggjaabcfa.",".abfdaSgkkjeejkkjtabfda.",".abfdtSgkjegjegkjtSbfda.",".abcdSSjjjejjejjjSSbcda.",".abcdleeeeeeeeeeelebcda.",".adfdeegggggggggjeebfda.","..aafSSgkkkkkkkkkSSfaa..","....aagkkkkkkkkkkjaa....","...afajjjjjjjjjjjjafa...","....a.agggjaagggja.a....","...afaajjjjaajjjjaafa...","...aaaaeeeeaaeeeeaaaa...","..afffmmmmnaammmmmfffa..","...aaannnnnaannnnnaaa..."],"pal":{"a":"#1b1326","b":"#4a4058","c":"#2a2230","d":"#14101a","e":"#c08a1a","f":"#6ad8ff","g":"#ffffff","h":"#ff9a9a","i":"#d0485a","j":"#bfb39a","k":"#f2ead8","l":"#fff3a0","m":"#b07a40","n":"#5a3a1a"}}],"bar":[{"rows":[".................abca...","........aaaaaaaa.aca....","......aadddddddeabca....",".....addffffffffcca.....","....adffffffffffddda....","...adffffffffffffffda...","..aeeeeeeeeeeeeeeeeeea..","...agggggggggggggggga...","..aghhihhhiiiihhhihhia..","..aghitiiittttiiitihia..","..agitatttsssstttatiia..","..aitsajassssssajasSia..","..aitssaassssssaassSia..","..aitssaassssssaassSia..","..agSksssssssssssskSia..","..agiSsssssllsssssSgia..","..agiaSSSssssssSSSagia..","..agiaaaaSSSSSSaaaaiia..","..aga.aeeeeeedddea.aa...","..agia.aaaammdffeja.....","..aga....amaadffejna....","..agia.aama.aeeeejna....","..aga.aoooa.ammmmnna....","..agiaopqpraadddetSa....","..agaopqqqraadfffSSa....","..aiirppqprddffffda.....","...aadrrrrdfffffffea....","....adddddffffffffea....","....aeeeeeeeeeeeeeea....",".....aannnnaannnnaa.....",".....auuuumaauuuuma.....",".....ammmmmaammmmma....."],"pal":{"a":"#1b1326","b":"#ff9ab0","c":"#b02040","d":"#6fe39a","e":"#1a6b3a","f":"#2ea65c","g":"#c07a3c","h":"#8a4f24","i":"#5c3216","j":"#ffffff","k":"#ff9a9a","l":"#d0485a","m":"#43280f","n":"#bfb39a","o":"#f0b060","p":"#c98a3e","q":"#3a1f0a","r":"#7a4a1a","u":"#8a5a30"}},{"rows":["...............abcaaa...","........aaaaaa.acaaaa...","......aadddddeabcaaa....",".....addffffffccaaa.....","....adffffffffdddfda....","aaaadffffffffffffffdaaaa","edddeeeeeeeeeeeeeeeeddde","aeeeggggggggggggggggeeea",".aaghhihhhiiiihhhihhiaa.","..aghitiiittttiiitihia..","..agitatttsssstttatiia..","..aitsajassssssajasSia..","..aitssaassssssaassSia..","..aitssaassssssaassSia..","..agSksssssssssssskSia..","..agiSsssssllsssssSgia..","..agiaSSSssssssSSSagia..","..agiaaaaSSSSSSaaaaiia..","..aga.ammmmmmjjmma.aa...","..agia.aaaaccjmnoja.....","..aga....acaamnpojma....","..agia.aaca.acooojma....","..aga.aqqqa.arrrrmma....","..agiaquvuwaacnnotSa....","..agaquvvvwaamnppSSa....","..aiiwuuvuwnomnppna.....","...aanwwwwnppmnpppoa....","....annnnnpppnppppoa....","....aooooooooooooooa....",".....aaxxxxaaxxxxaa.....",".....ayyyyraayyyyra.....",".....arrrrraarrrrra....."],"pal":{"a":"#1b1326","b":"#fff3a0","c":"#c08a1a","d":"#8a5ac0","e":"#3a1660","f":"#5a2a8a","g":"#c07a3c","h":"#8a4f24","i":"#5c3216","j":"#ffffff","k":"#ff9a9a","l":"#d0485a","m":"#bfb39a","n":"#ff6b6b","o":"#8a1f2a","p":"#c8343f","q":"#d8904a","r":"#43280f","u":"#a8642a","v":"#3a1f0a","w":"#6a3a14","x":"#1e1428","y":"#8a5a30"}},{"rows":["...........abbaaaa......","........aaacccbaaaa.....","......aaddddaaccaaa.....",".....addeeeedddddea.....",".a..affffffffffffffa....","agaaffffffffffffffffaaaa","ffgdffffffffffffffffddff","afffhhhhhhhhhhhhhhhhfffa",".aahiijiiijjjjiiijiihaa.","..ahijtjjjttttjjjtjiiga.",".ahijtatttsssstttatjiiga","aahjtsabassssssabasShja.","gahjtssaassssssaassShja.","aahjtssaassssssaassShja.",".ahiSksssssssssssskShia.",".ahijSsssssllsssssShiiga",".ahijaSSSssssssSSSahija.",".ahjjaaaaSSSSSSaaaahija.",".ajfjaafamnbbnmmmmfjija.",".afofafofnbpppmqqqmfhja.",".afjbooafnbffpmqqqqnhja.",".afjoaoadnppppnnqqqnhja.",".afjoaoafffdffffmqnnhja.",".ajfoaofanbffpmmqntSjja.","..aafdfaanbbbpmqqfSaaa..","....afmmmnbrrpmqqmfa....","....amqqqnbrrpmqqqna....","....amqqqqppppmqqqna....","....annnnnnnnnnnnnna....",".....aauuuuaauuuuaa.....",".....avvvvuaavvvvua.....",".....auuuuuaauuuuua....."],"pal":{"a":"#1b1326","b":"#ffffff","c":"#c8d8f0","d":"#fff3a0","e":"#ffd447","f":"#c08a1a","g":"#ffe066","h":"#fff0a8","i":"#f2c64a","j":"#b88a1e","k":"#ff9a9a","l":"#d0485a","m":"#8a5ac0","n":"#3a1660","o":"#e0d0a0","p":"#bfb39a","q":"#5a2a8a","r":"#f2ead8","u":"#14141e","v":"#4a4a5e"}}]};
+const EVO_F={war:["Guerreira","Cavaleira","Paladina"],mag:["Maga","Feiticeira","Arquimaga"],mon:["Monja","Mestra Ki","Grã-Mestra"],bar:["Barda","Menestrel","Maestrina Lendária"]};
+const isF=g=>(g??(S.hero&&S.hero.gender))==='f';
+const evoN=(c,i,g)=>(isF(g)?EVO_F:EVO)[c][i];
+const clsName=(c,L)=>evoN(c,stageOf(L??S.level));
+function svg(rows,pal,size,cls){const W=rows[0].length,H=rows.length;let r='';rows.forEach((row,y)=>{let x=0;while(x<W){const ch=row[x],c=pal[ch];if(!c){x++;continue}let n=1;while(x+n<W&&row[x+n]===ch)n++;r+=`<rect x="${x}" y="${y}" width="${n}.03" height="1.03" fill="${c}"/>`;x+=n}});
+ return `<svg class="spr ${cls||''}" viewBox="0 0 ${W} ${H}" width="${Math.round(size*W/H)}" height="${size}" shape-rendering="crispEdges">${r}</svg>`}
+function mon(k,size,sh){return svg(SPR[k].rows,sh?shinyPal(k):SPR[k].pal,size,sh?'shiny':'')}
+function hero(cls,size,skin,stage,g){const A=(isF(g)?HEROES_F:HEROES)[cls]||HEROES.war;if(skin==null)skin=(S.hero&&S.hero.skin!=null)?S.hero.skin:1;if(stage==null)stage=S.hero?stageOf(S.level):0;
+ const H=A[stage]||A[0],t=SKINS[skin]||SKINS[1];return svg(H.rows,Object.assign({},H.pal,{s:t[0],S:t[1],t:t[2]}),size)}
+function heroSil(cls,size,stage){const H=(isF()?HEROES_F:HEROES)[cls][stage];return svg(H.rows,Object.fromEntries([...Object.keys(H.pal),'s','S','t'].map(c=>[c,'#2c3478'])),size)}
+
+/* ===================== logo em pixel art ===================== */
+const FONT={Q:[".###.","#...#","#...#","#...#","#.#.#","#..#.",".##.#"],U:["#...#","#...#","#...#","#...#","#...#","#...#",".###."],
+ E:["#####","#....","#....","####.","#....","#....","#####"],S:[".####","#....","#....",".###.","....#","....#","####."],
+ T:["#####","..#..","..#..","..#..","..#..","..#..","..#.."],L:["#....","#....","#....","#....","#....","#....","#####"],
+ O:[".###.","#...#","#...#","#...#","#...#","#...#",".###."],G:[".####","#....","#....","#.###","#...#","#...#",".###."]};
+const EMBLEM=(()=>{const W=30,H=30,g=Array.from({length:H},()=>Array(W).fill('.'));const P=(x,y,c)=>{if(x>=0&&x<W&&y>=0&&y<H)g[y][x]=c};
+ // espada na diagonal (atrás do escudo)
+ P(0,0,'g');P(1,0,'g');P(0,1,'g');P(1,1,'G');
+ for(let y=1;y<=4;y++){P(y,y,'b');P(y+1,y,'b');P(y+2,y,'B')}
+ for(let k=-5;k<=5;k++){P(5-k,5+k,'g');P(6-k,5+k,'g');P(7-k,5+k,'G')}
+ for(let y=6;y<=28;y++){P(y-1,y,'n');P(y,y,y<28?'n':'m');if(y<27)P(y+1,y,'m')}P(28,29,'m')
+ // escudo
+ const cx=15,hw=r=>r<5||r>25?0:r<=15?9:[8,8,7,6,5,4,3,2,1,1][r-16]||0;
+ const inS=(x,y)=>{const w=hw(y);return w>0&&x>=cx-w&&x<cx+w};
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(inS(x,y)){
+  const edge=[[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>!inS(x+a,y+b));
+  const rim=!edge&&[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]].some(([a,b])=>!inS(x+a,y+b));
+  P(x,y,edge?'o':rim?(x<cx?'n':'m'):(x<cx?'q':'a'))}
+ // brasão
+ for(let dy=-4;dy<=4;dy++){const w=5-Math.abs(dy);for(let dx=-w;dx<w;dx++)P(cx+dx,13+dy,dx<0?'g':'G')}
+ P(14,13,'r');P(15,13,'r');P(14,12,'r');P(15,12,'r');P(14,12,'w');
+ // contorno
+ const out=g.map(r=>r.slice());for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(g[y][x]==='.'){for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){const c=(g[y+b]||[])[x+a];if(c&&c!=='.'){out[y][x]='o';break}}}
+ return out.map(r=>r.join(''))})();
+function logo(h,inline){
+ // texto em blocos 2x2
+ const words=inline?['QUEST LOG']:['QUEST','LOG'];const SC=2,GAP=2,LH=7*SC;
+ const tw=w=>w.split('').reduce((a,c)=>a+(c===' '?4*SC:5*SC+GAP),0)-GAP;
+ const textW=Math.max(...words.map(tw)),textH=words.length*LH+(words.length-1)*4;
+ const EW=30,EH=30;let W,H,ex,ey,tx,ty;
+ if(inline){W=EW+6+textW+4;H=Math.max(EH,textH)+4;ex=1;ey=1;tx=EW+6;ty=Math.round((H-textH)/2)-1}
+ else{W=Math.max(EW,textW)+6;H=EH+6+textH+5;ex=Math.round((W-EW)/2);ey=1;tx=3;ty=EH+5}
+ const g=Array.from({length:H},()=>Array(W).fill('.'));
+ EMBLEM.forEach((row,y)=>{for(let x=0;x<row.length;x++)if(row[x]!=='.')g[ey+y][ex+x]=row[x]});
+ const tg=Array.from({length:H},()=>Array(W).fill(0));
+ words.forEach((w,wi)=>{let x=inline?tx:tx+Math.round((textW-tw(w))/2);const y0=ty+wi*(LH+4);
+  for(const ch of w){if(ch===' '){x+=4*SC;continue}const f=FONT[ch];
+   f.forEach((row,ry)=>{for(let rx=0;rx<5;rx++)if(row[rx]==='#')for(let a=0;a<SC;a++)for(let b=0;b<SC;b++){const yy=y0+ry*SC+b;if(g[yy])tg[yy][x+rx*SC+a]=1+ry}});x+=5*SC+GAP}});
+ // sombra, contorno e gradiente dourado
+ const C=['','y1','y1','y2','y2','y3','y4','y4'];
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(tg[y][x]){for(let b=-1;b<=2;b++)for(let a=-1;a<=1;a++){const yy=y+b,xx=x+a;if(g[yy]&&xx>=0&&xx<W&&!tg[yy][xx]&&g[yy][xx]==='.')g[yy][xx]=b===2?'d':'o'}}
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(tg[y][x])g[y][x]=C[tg[y][x]];
+ const pal={o:'#1b1326',d:'#7a2416',g:'#ffd447',G:'#d8961e',b:'#7a4a22',B:'#4a2a12',n:'#ffffff',m:'#aab6cc',q:'#4f78ff',a:'#2a46c0',r:'#ff4a5a',w:'#ffd0d6',
+  y1:'#fff7c4',y2:'#ffe066',y3:'#ffc23a',y4:'#ff8f1f'};
+ let r='';for(let y=0;y<H;y++){let x=0;while(x<W){const c=g[y][x];if(c==='.'){x++;continue}let n=1;while(x+n<W&&g[y][x+n]===c)n++;r+=`<rect x="${x}" y="${y}" width="${n}.03" height="1.03" fill="${pal[c]}"/>`;x+=n}}
+ return `<svg class="spr" role="img" aria-label="Quest Log" viewBox="0 0 ${W} ${H}" height="${h}" width="${Math.round(h*W/H)}" shape-rendering="crispEdges">${r}</svg>`}
+
+
+/* ===================== poções de descanso (Pomodoro) ===================== */
+const POT_EVERY=25,POT_REST=5,ELX_REST=15,ELX_CYCLE=4;
+const POTION=["....oooo....","...occcco...","...oCCCCo...","....oggo....","....oggo....","...oggggo...","..ogrrrrgo..",".orwrrrrrRo.",".orwrrrrrRo.",".orrrrrrrRo.",".orrrrrrRRo.",".oRrrrrrRRo.","..oRRRRRRo..","...oooooo..."];
+function potion(size,locked){const p=locked?{o:'#141838',c:'#4a4f6e',C:'#33374f',g:'#6a7090',r:'#3e4466',R:'#2c3150',w:'#7a80a0'}
+ :{o:'#1b1326',c:'#b07a40',C:'#7a4a1a',g:'#d8f0ff',r:'#ff4a6a',R:'#b0203a',w:'#ffffff'};return svg(POTION,p,size)}
+const ELIXIR=["....oooo....","...oyyyyo...","...oYYYYo...","....oggo....","...oggggo...","..oggbbggo..",".ogbbbbbbgo.","ogbwbbbbbBgo","ogbwbbbbbBgo","ogbbbbbbBBgo",".ogbbbbBBgo.","..ogBBBBgo..","...oggggo...","....oooo...."];
+function elixir(size,locked){const p=locked?{o:'#141838',y:'#4a4f6e',Y:'#33374f',g:'#6a7090',b:'#3e4466',B:'#2c3150',w:'#7a80a0'}
+ :{o:'#1b1326',y:'#ffd447',Y:'#c08a1a',g:'#eafff8',b:'#38e8c8',B:'#129a88',w:'#ffffff'};return svg(ELIXIR,p,size,locked?'':'shine')}
+// simula/aplica o ganho: a cada 4 descansos, o 4º vira um Elixir (pausa longa do Pomodoro)
+function calcRests(min,apply){let bank=(S.focusBank||0)+min,cyc=S.potCycle||0,p=0,e=0;
+ while(bank>=POT_EVERY){bank-=POT_EVERY;cyc++;if(cyc>=ELX_CYCLE){e++;cyc=0}else p++}
+ if(apply){S.focusBank=bank;S.potCycle=cyc;S.potions=(S.potions||0)+p;S.elixirs=(S.elixirs||0)+e}return{p,e}}
+function addFocusTime(min){return calcRests(min,true)}
+function restTxt(r){const a=[];if(r.p)a.push(r.p>1?r.p+' Poções de Descanso':'1 Poção de Descanso');if(r.e)a.push(r.e>1?r.e+' Elixires':'1 Elixir');return a.join(' e ')}
+/* ===================== estado / save ===================== */
+const KEY='questlog_rpg_v1';
+function fresh(){return{v:1,hero:null,level:1,xp:0,totalXp:0,gold:0,cat:{trab:0,est:0,sau:0,pes:0},
+ quests:[],rewards:[{id:uid(),title:'Pausa de 15 minutos',cost:30},{id:uid(),title:'Um episódio de série',cost:60},{id:uid(),title:'Lanche especial',cost:90},{id:uid(),title:'Noite livre de games',cost:250}],
+ bestiary:{},shinyDex:{},potions:0,elixirs:0,potCycle:0,focusBank:0,rest:null,log:[],stats:{potUsed:0,elxUsed:0,ticks:0,shiny:0,weekly:0,daily:0,bigMeta:0,early:0,late:0,perfect:0,allcat:0,done:0,focus:0,focusMin:0,bosses:0,bought:0,goldEarned:0},streak:0,best:0,lastActive:null,ach:{},focus:null,sound:true,updatedAt:0}}
+function migrate(s){const f=fresh();if(!s||typeof s!=='object')return f;const o=Object.assign(f,s);
+ o.cat=Object.assign(fresh().cat,s.cat||{});o.stats=Object.assign(fresh().stats,s.stats||{});o.potions=o.potions||0;o.elixirs=o.elixirs||0;o.potCycle=o.potCycle||0;o.focusBank=o.focusBank||0;o.ach=o.ach||{};o.bestiary=o.bestiary||{};o.shinyDex=o.shinyDex||{};o.log=o.log||[];o.quests=o.quests||[];o.rewards=o.rewards||[];return o}
+let S;try{S=migrate(JSON.parse(localStorage.getItem(KEY)))}catch(e){S=fresh()}
+function checkStreak(){if(S.lastActive&&S.lastActive<yesterday()&&S.streak){S.streak=0}}
+checkStreak();
+let remoteTimer=null;
+function save(){S.updatedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+ clearTimeout(remoteTimer);remoteTimer=setTimeout(pushRemote,1200)}
+
+/* ---- nuvem (sincroniza entre aparelhos quando disponível) ---- */
+let REF=null,syncing=false,pending=false,syncState='Conectando...';
+function unwrap(r){if(!r)return null;if(typeof r.data==='function')return r.data();if(r.exists===false)return null;if(r.data&&typeof r.data==='object'&&!r.s)return r.data;return r}
+async function pushRemote(){if(!REF)return;if(syncing){pending=true;return}syncing=true;
+ try{await REF.set({s:JSON.stringify(S),u:S.updatedAt});syncState='Salvo na nuvem ✓'}catch(e){syncState='Salvo só neste aparelho'}
+ syncing=false;if(pending){pending=false;pushRemote()}}
+async function initCloud(){
+ for(let i=0;i<40&&!(window.claude&&window.claude.use);i++)await new Promise(r=>setTimeout(r,100));
+ if(!(window.claude&&window.claude.use)){syncState='Salvo só neste aparelho';return}
+ try{
+  const [db,user]=await Promise.all([claude.use('db'),claude.use('user')]);
+  if(!db||!user){syncState='Salvo só neste aparelho';return}
+  const id=await user.id();
+  const ref=db.collection('data/users/'+id).doc('save');
+  const r=await Promise.race([ref.get(),new Promise((_,rej)=>setTimeout(()=>rej('timeout'),10000))]);
+  REF=ref;const d=unwrap(r);
+  if(d&&d.s){const remote=migrate(JSON.parse(d.s));
+   if((remote.updatedAt||0)>(S.updatedAt||0)){S=remote;checkStreak();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}render()}
+   else if((S.updatedAt||0)>(remote.updatedAt||0))pushRemote();}
+  else if(S.hero)pushRemote();
+  syncState='Salvo na nuvem ✓';
+ }catch(e){syncState='Salvo só neste aparelho'}
+ if(tab==='hero')render();
+}
+
+/* ===================== som 8-bit ===================== */
+let AC;
+let FORCE=false;
+function tone(f,d,t=0,type='square',v=.05){if(!S.sound&&!FORCE)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+ const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime+t;o.type=type;o.frequency.setValueAtTime(f,n);
+ g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(AC.destination);o.start(n);o.stop(n+d+.03)}catch(e){}}
+const SFX={
+ sel:()=>tone(880,.04),
+ hit:()=>{tone(180,.1,0,'sawtooth',.07);tone(90,.15,.07,'sawtooth',.07)},
+ win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.13,.35+i*.09)),
+ lvl:()=>[392,523,659,784,659,784,1047].forEach((f,i)=>tone(f,.18,i*.12,'square',.06)),
+ buy:()=>[988,1319].forEach((f,i)=>tone(f,.12,i*.08)),
+ drink:()=>[523,659,784,659,784,988].forEach((f,i)=>tone(f,.12,i*.1,'triangle',.07)),
+ elixir:()=>{[523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,.14,i*.08,'triangle',.07));[1568,2093].forEach((f,i)=>tone(f,.25,.55+i*.12,'sine',.05))},
+ shiny:()=>[1568,2093,1760,2349,2093,2637].forEach((f,i)=>tone(f,.09,i*.06,'sine',.06)),
+ rest:()=>[784,659,523,659,784,1047].forEach((f,i)=>tone(f,.2,i*.16,'triangle',.07)),
+ ach:()=>[784,988,1175,1568].forEach((f,i)=>tone(f,.1,i*.07,'triangle',.08))};
+
+const SFX_LIST=[['sel','Seleção de menu','Ao tocar em botões e opções'],['hit','Golpe','Ao atacar um monstro'],['win','Vitória','Monstro derrotado'],
+ ['lvl','Level up','Ao subir de nível ou criar o herói'],['ach','Conquista','Conquista desbloqueada'],['buy','Compra','Recompensa comprada na taverna'],
+ ['drink','Beber poção','Início do descanso curto'],['elixir','Beber elixir','Início da pausa longa'],['shiny','Brilho especial','Surge um monstro especial ✦'],['rest','Fim do descanso','Descanso concluído']];
+function testSfx(k){FORCE=true;try{SFX[k]()}finally{FORCE=false}}
+/* ===================== conquistas ===================== */
+const attrOf=(s,c)=>1+Math.floor((s.cat[c]||0)/60);
+const ACH=[
+ ['first','Primeiro Sangue','Conclua 1 missão',s=>s.stats.done>=1],
+ ['q10','Caçador de Monstros','Conclua 10 missões',s=>s.stats.done>=10],
+ ['q50','Exterminador','Conclua 50 missões',s=>s.stats.done>=50],
+ ['q200','Lenda da Guilda','Conclua 200 missões',s=>s.stats.done>=200],
+ ['q500','Flagelo das Trevas','Conclua 500 missões',s=>s.stats.done>=500],
+ ['q1000','Imortal','Conclua 1000 missões',s=>s.stats.done>=1000],
+ ['daily100','Rotina de Aço','Conclua 100 diárias',s=>s.stats.daily>=100],
+ ['weekly1','Meta Semanal','Conclua uma missão semanal',s=>s.stats.weekly>=1],
+ ['weekly10','Ritmo de Gabinete','Conclua 10 semanais',s=>s.stats.weekly>=10],
+ ['big','Maratonista','Bata uma meta de 20+ marcações',s=>s.stats.bigMeta>=1],
+ ['tick100','Passo a Passo','Registre 100 progressos parciais',s=>s.stats.ticks>=100],
+ ['tick500','Formiguinha','Registre 500 progressos parciais',s=>s.stats.ticks>=500],
+ ['perfect','Dia Perfeito','Todas as diárias do dia (mín. 3)',s=>s.stats.perfect>=1],
+ ['perfect10','Semana Impecável','10 dias perfeitos',s=>s.stats.perfect>=10],
+ ['allcat','Herói Completo','EXP nas 4 áreas no mesmo dia',s=>s.stats.allcat>=1],
+ ['early','Madrugador','Conclua algo antes das 7h',s=>s.stats.early>=1],
+ ['late','Coruja da Noite','Conclua algo depois das 23h',s=>s.stats.late>=1],
+ ['boss','Matador de Dragões','Vença uma missão Chefe',s=>s.stats.bosses>=1],
+ ['boss10','Caçador de Chefes','Vença 10 missões Chefe',s=>s.stats.bosses>=10],
+ ['boss50','Rei dos Chefes','Vença 50 missões Chefe',s=>s.stats.bosses>=50],
+ ['lv5','Aventureiro','Alcance o nível 5',s=>s.level>=5],
+ ['lv10','Herói do Reino','Alcance o nível 10',s=>s.level>=10],
+ ['lv20','Campeão','Alcance o nível 20',s=>s.level>=20],
+ ['lv30','Mito Vivo','Alcance o nível 30',s=>s.level>=30],
+ ['for10','Titã','Força nível 10',s=>attrOf(s,'trab')>=10],
+ ['int10','Erudito','Inteligência nível 10',s=>attrOf(s,'est')>=10],
+ ['vit10','Atleta','Vitalidade nível 10',s=>attrOf(s,'sau')>=10],
+ ['car10','Carismático','Carisma nível 10',s=>attrOf(s,'pes')>=10],
+ ['st3','Em Chamas','3 dias seguidos',s=>s.best>=3],
+ ['st7','Semana Épica','7 dias seguidos',s=>s.best>=7],
+ ['st14','Quinzena de Ferro','14 dias seguidos',s=>s.best>=14],
+ ['st30','Inabalável','30 dias seguidos',s=>s.best>=30],
+ ['st100','Centenário','100 dias seguidos',s=>s.best>=100],
+ ['f1','Mente Focada','1 batalha de foco',s=>s.stats.focus>=1],
+ ['f10','Mestre Zen','10 batalhas de foco',s=>s.stats.focus>=10],
+ ['f50','Monge da Montanha','50 batalhas de foco',s=>s.stats.focus>=50],
+ ['f600','Monge do Tempo','10 h de foco',s=>s.stats.focusMin>=600],
+ ['f3000','Senhor do Tempo','50 h de foco',s=>s.stats.focusMin>=3000],
+ ['pot','Hora do Chá','Beba uma Poção de Descanso',s=>s.stats.potUsed>=1],
+ ['pot20','Alquimista','Beba 20 Poções',s=>s.stats.potUsed>=20],
+ ['elx','Pausa Lendária','Beba um Elixir',s=>s.stats.elxUsed>=1],
+ ['best10','Naturalista','10 espécies no bestiário',s=>BEST.filter(k=>s.bestiary&&s.bestiary[k]).length>=10],
+ ['bestall','Mestre Caçador','Complete o bestiário',s=>BEST.every(k=>s.bestiary&&s.bestiary[k])],
+ ['shiny1','Brilho Raro','Derrote um monstro especial ✦',s=>s.stats.shiny>=1],
+ ['shiny5','Colecionador de Brilhos','Derrote 5 monstros especiais',s=>s.stats.shiny>=5],
+ ['shinyall','Lenda Cintilante','10 espécies especiais diferentes',s=>Object.keys(s.shinyDex||{}).length>=10],
+ ['buy','Cliente da Taverna','Compre uma recompensa',s=>s.stats.bought>=1],
+ ['buy10','Freguês Fiel','Compre 10 recompensas',s=>s.stats.bought>=10],
+ ['g1k','Tesouro do Rei','Ganhe 1000 G no total',s=>s.stats.goldEarned>=1000],
+ ['g10k','Tesouro do Dragão','Ganhe 10000 G no total',s=>s.stats.goldEarned>=10000]];
+function checkDay(){const h=new Date().getHours();if(h<7)S.stats.early++;if(h>=23)S.stats.late++;
+ const t=today(),cats=new Set(S.log.filter(l=>l.c&&l.xp>0&&dstr(new Date(l.t))===t).map(l=>l.c));if(cats.size>=4&&S.stats.lastAllcat!==t){S.stats.allcat++;S.stats.lastAllcat=t}
+ const dl=S.quests.filter(q=>q.type==='daily');if(dl.length>=3&&dl.every(qDone)&&S.stats.lastPerfect!==t){S.stats.perfect++;S.stats.lastPerfect=t}}
+function checkAch(){const got=[];ACH.forEach(a=>{if(!S.ach[a[0]]&&a[3](S)){S.ach[a[0]]=Date.now();got.push(a)}});return got}
+
+/* ===================== mecânicas ===================== */
+function addLog(txt,xp,g,c){S.log.unshift({t:Date.now(),txt,xp,g,c});if(S.log.length>80)S.log.length=80}
+function touchStreak(){const t=today();if(S.lastActive===t)return;S.streak=S.lastActive===yesterday()?S.streak+1:1;S.lastActive=t;S.best=Math.max(S.best,S.streak)}
+function award(bx,bg,cat){
+ let xm=1+Math.min(S.streak,10)*.03,gm=1;const C=CLASSES[S.hero.cls];
+ if(C.cat&&C.cat===cat)xm+=.15;if(S.hero.cls==='bar')gm+=.15;
+ const xp=Math.round(bx*xm),gold=Math.round(bg*gm);
+ S.xp+=xp;S.totalXp+=xp;S.gold+=gold;S.stats.goldEarned+=gold;if(cat&&S.cat[cat]!=null)S.cat[cat]+=xp;
+ const ups=[];while(S.xp>=need(S.level)){S.xp-=need(S.level);S.level++;const bonus=S.level*10;S.gold+=bonus;ups.push({lv:S.level,bonus})}
+ return{xp,gold,ups}}
+const attr=c=>1+Math.floor(S.cat[c]/60);
+const todayXp=()=>{const t=today();return S.log.filter(l=>dstr(new Date(l.t))===t).reduce((a,l)=>a+(l.xp||0),0)};
+const todayDone=()=>{const t=today();return S.log.filter(l=>dstr(new Date(l.t))===t&&l.q).length};
+
+function hitQuest(q){
+ if(!q||qDone(q))return null;const T=qTarget(q),D=DIFF[q.diff],mk=qmon(q),pk=perKey(q),sh=!!q.shiny;
+ if(q.per!==pk){q.per=pk;q.prog=0}q.prog=(q.prog||0)+1;if(T>1)S.stats.ticks++;
+ const fin=q.prog>=T;let bx=T>1?D.xp/T:D.xp,bg=T>1?D.g/T:D.g;
+ if(fin&&T>1){bx+=D.xp*.5;bg+=D.g*.5}
+ if(fin&&sh){bx+=D.xp*.5;bg+=D.g}
+ const r=award(Math.max(1,Math.round(bx)),Math.round(bg),q.cat);
+ if(fin){if(q.type==='once'){q.done=true;q.doneAt=Date.now()}else{q.lastDone=pk;q.count=(q.count||0)+1}
+  S.bestiary[mk]=(S.bestiary[mk]||0)+1;if(sh){S.shinyDex[mk]=(S.shinyDex[mk]||0)+1;S.stats.shiny++}
+  S.stats.done++;if(q.diff==='b')S.stats.bosses++;if(q.type==='weekly')S.stats.weekly++;if(q.type==='daily')S.stats.daily++;if(T>=20)S.stats.bigMeta++;
+  addLog(`${sh?'✦ ':''}${mname(mk)} derrotad${art(mk)} — ${q.title}`,r.xp,r.gold,q.cat);S.log[0].q=1;
+  if(q.type!=='once')rollMon(q);}
+ else addLog(`Golpe ${q.prog}/${T} — ${q.title}`,r.xp,r.gold,q.cat);
+ return{q,mk,sh,fin,r,prog:q.prog,T}}
+function complete(id){
+ const q=S.quests.find(x=>x.id===id);if(!q||qDone(q))return;undoSnap=null;$('#toast').classList.remove('show');const snap=JSON.stringify(S);
+ touchStreak();const evs=[hitQuest(q)];const L=q.link&&q.link!==q.id&&S.quests.find(x=>x.id===q.link);if(L)evs.push(hitQuest(L));
+ const E=evs.filter(Boolean),ups=[];E.forEach(e=>ups.push(...e.r.ups));
+ checkDay();const got=checkAch();save();render();
+ const fins=E.filter(e=>e.fin),main=E[0];
+ const linkTxt=E[1]?` · ${esc(E[1].q.title)}: ${E[1].fin?'concluída!':E[1].prog+'/'+E[1].T}`:'';
+ const end=()=>levelUps(ups,()=>achToasts(got,()=>undoToast(snap,fins.length?'Missão concluída.':`Golpe! ${main.prog}/${main.T} ${esc(q.unit||'')} · +${main.r.xp} EXP${linkTxt}`)));
+ if(!fins.length){SFX.hit();const m=$('.q [data-id="'+q.id+'"]');end();return}
+ const run=i=>{if(i>=fins.length){end();return}const e=fins[i];
+  battle(e.mk,mname(e.mk),`${esc(S.hero.name)} derrotou ${art(e.mk)} ${e.sh?'✦ ':''}${mname(e.mk)}!${e.T>1?`\nMeta cumprida: ${e.T}/${e.T} ${e.q.unit||''}`:''}${e.sh?'\nMonstro especial: recompensa em dobro!':''}\n+${e.r.xp} EXP   +${e.r.gold} G`,()=>run(i+1),e.sh)};
+ run(0);
+}
+
+/* ===================== UI: batalha / level up / toasts ===================== */
+function typeText(el,txt,cb){let i=0;el.textContent='';const t=setInterval(()=>{el.textContent=txt.slice(0,++i);if(i>=txt.length){clearInterval(t);cb&&cb()}},22);return t}
+function battle(m,name,msg,done,sh){
+ const B=$('#battle');B.innerHTML=`<div class="stage"><div class="ground"></div><div class="foe" id="foe">${mon(m,150,sh)}</div>${sh?'<div class="sparks">✦<span>✦</span><span>✧</span></div>':''}<div class="slash" id="slash"></div></div>
+  <div class="win"><div class="tb" id="btxt">${sh?'✦ ':''}${SPR[m]&&SPR[m].f?'Uma':'Um'} ${esc(name)} ${sh?(SPR[m]&&SPR[m].f?'ESPECIAL':'ESPECIAL'):'selvagem'} aparece!</div><div class="mut" style="text-align:right;font-size:12px;margin-top:6px">toque para continuar ▼</div></div>`;
+ B.classList.add('show');if(sh)setTimeout(()=>SFX.shiny(),100);let closed=false,timer;
+ const close=()=>{if(closed)return;closed=true;clearTimeout(timer);B.classList.remove('show');B.onclick=null;done&&done()};
+ setTimeout(()=>{$('#slash').classList.add('go');$('#foe').classList.add('hit');SFX.hit();
+  const d=document.createElement('div');d.className='dmg px';d.textContent='CRÍTICO!';$('.stage').appendChild(d)},450);
+ setTimeout(()=>{$('#foe').classList.remove('hit');$('#foe').classList.add('dead');SFX.win();
+  typeText($('#btxt'),msg.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'"),()=>{timer=setTimeout(close,2200)});
+  B.onclick=close},1250);
+}
+function evolve(from,to,done){const c=S.hero.cls,B=$('#battle');
+ B.innerHTML=`<div class="stage"><div class="rays"></div><div class="evoswap"><div class="ev0">${hero(c,140,null,from)}</div><div class="ev1">${hero(c,140,null,to)}</div></div></div>
+  <div class="lvup px">EVOLUÇÃO!</div><div class="win" style="margin-top:16px"><div class="tb" id="etxt"></div><button class="btn wide" id="eok" style="margin-top:12px">Continuar</button></div>`;
+ B.classList.add('show');SFX.shiny();setTimeout(()=>SFX.lvl(),900);
+ setTimeout(()=>typeText($('#etxt'),`${S.hero.name} evoluiu!\n${evoN(c,from)} → ${evoN(c,to)}\nUm novo poder desperta dentro de você.`),1700);
+ $('#eok').onclick=e=>{e.stopPropagation();B.classList.remove('show');done&&done()}}
+function levelUps(ups,done){if(!ups.length){done&&done();return}const u=ups[ups.length-1];const tot=ups.reduce((a,x)=>a+x.bonus,0);
+ const st0=stageOf(ups[0].lv-1),st1=stageOf(u.lv);if(st1>st0){const d0=done;done=()=>evolve(st0,st1,d0)}
+ const B=$('#battle');B.innerHTML=`<div class="stage"><div class="rays"></div><div class="jump">${hero(S.hero.cls,130,null,st0)}</div></div>
+  <div class="lvup px">LEVEL UP!</div>
+  <div class="win" style="margin-top:16px"><div class="tb" id="ltxt"></div>
+  <button class="btn wide" id="lok" style="margin-top:12px">Continuar</button></div>`;
+ B.classList.add('show');SFX.lvl();
+ typeText($('#ltxt'),`${S.hero.name} alcançou o nível ${u.lv}!\nTítulo: ${title(u.lv)}\nO rei te recompensa com +${tot} G.`);
+ $('#lok').onclick=e=>{e.stopPropagation();B.classList.remove('show');done&&done()}}
+let toastT;
+function toast(html,ms=2600,cb){const T=$('#toast');clearTimeout(toastT);T.innerHTML=`<div class="win">${html}</div>`;T.classList.add('show');
+ toastT=setTimeout(()=>{T.classList.remove('show');cb&&cb()},ms)}
+function achToasts(list,done){if(!list.length){done&&done();return}const a=list.shift();SFX.ach();
+ toast(`<span style="font-size:22px">🏆</span><div class="grow"><div style="color:var(--gold)">Conquista desbloqueada!</div><div>${a[1]}</div></div>`,2400,()=>achToasts(list,done))}
+let undoSnap=null;
+function undoToast(snap,msg){undoSnap=snap;toast(`<div class="grow mut" style="font-size:14px">${msg||'Missão concluída.'}</div><button class="btn sm ghost" data-act="undo">Desfazer</button>`,5000,()=>{undoSnap=null})}
+
+/* ===================== modal helpers ===================== */
+function modal(html){const M=$('#modal');M.innerHTML=`<div class="win">${html}</div>`;M.classList.add('show')}
+function closeModal(){$('#modal').classList.remove('show')}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+let askCb=null;
+function ask(msg,ok,cb,red=true){askCb=cb;modal(`<div class="tb">${msg}</div><div class="actions"><button class="btn ghost" data-act="close">Cancelar</button><button class="btn ${red?'red':''}" data-act="askok">${ok}</button></div>`)}
+
+/* ===================== formulário de missão ===================== */
+let F={};
+function questForm(id){const q=id?S.quests.find(x=>x.id===id):null;
+ F=q?{id:q.id,title:q.title,cat:q.cat,diff:q.diff,type:q.type,due:q.due||'',target:qTarget(q),unit:q.unit||'',link:q.link||''}:{title:'',cat:'trab',diff:'m',type:'once',due:'',target:1,unit:'',link:''};
+ const others=S.quests.filter(x=>x.id!==F.id&&qTarget(x)>1);
+ modal(`<h2>${q?'Editar missão':'Nova missão'}</h2>
+  <label class="f">Objetivo</label><input class="in" id="ftitle" maxlength="80" placeholder="Ex.: Minutar 4 processos" value="${esc(F.title)}">
+  <label class="f">Categoria (atributo que evolui)</label><div class="pick c4" id="fcat">${Object.entries(CATS).map(([k,c])=>`<button data-act="fset" data-k="cat" data-id="${k}" class="${F.cat===k?'on':''}"><span style="color:${c.c}">${c.a}</span>${c.n}</button>`).join('')}</div>
+  <label class="f">Dificuldade (inimigo)</label><div class="pick c4" id="fdiff">${Object.entries(DIFF).map(([k,d])=>`<button data-act="fset" data-k="diff" data-id="${k}" class="${F.diff===k?'on':''}">${mon(d.m,30)}${d.n}<small>${d.xp} EXP</small></button>`).join('')}</div>
+  <label class="f">Repetição</label><div class="pick" style="grid-template-columns:repeat(3,1fr)" id="ftype">
+   <button data-act="fset" data-k="type" data-id="once" class="${F.type==='once'?'on':''}">Única<small>some ao concluir</small></button>
+   <button data-act="fset" data-k="type" data-id="daily" class="${F.type==='daily'?'on':''}">Diária<small>renasce todo dia</small></button>
+   <button data-act="fset" data-k="type" data-id="weekly" class="${F.type==='weekly'?'on':''}">Semanal<small>renasce na segunda</small></button></div>
+  <label class="f">Meta com contador <span class="mut">(deixe 1 para missão simples)</span></label>
+  <div class="row"><button class="btn ghost sm" data-act="tgt" data-id="-1">−</button><input class="in" id="ftarget" type="number" inputmode="numeric" min="1" max="99" value="${F.target}" style="width:70px;text-align:center"><button class="btn ghost sm" data-act="tgt" data-id="1">+</button>
+   <input class="in grow" id="funit" maxlength="24" placeholder="unidade: processos, copos..." value="${esc(F.unit)}"></div>
+  <div class="mut" style="font-size:12px;margin-top:4px">Ex.: 4 processos por dia, 4 copos de 500 ml. Cada toque em “+1” é um golpe; ao bater a meta, o monstro cai.</div>
+  ${others.length?`<label class="f">Somar o progresso também em <span class="mut">(meta maior)</span></label><select class="in" id="flink"><option value="">— nenhuma —</option>${others.map(x=>`<option value="${x.id}" ${F.link===x.id?'selected':''}>${esc(x.title)} (${qTarget(x)} ${esc(x.unit||'')})</option>`).join('')}</select>`:''}
+  <div id="fduewrap" style="${F.type!=='once'?'display:none':''}"><label class="f">Prazo (opcional)</label><input type="date" class="in" id="fdue" value="${esc(F.due)}"></div>
+  <div class="actions">${q?`<button class="btn red" data-act="qdel" data-id="${q.id}">Excluir</button>`:`<button class="btn ghost" data-act="close">Cancelar</button>`}<button class="btn" data-act="qsave">Salvar</button></div>`);
+ setTimeout(()=>{if(!q)$('#ftitle').focus()},60)}
+function saveQuest(){const t=$('#ftitle').value.trim();if(!t){$('#ftitle').focus();$('#ftitle').style.borderColor='#ff5470';return}
+ const due=F.type==='once'?($('#fdue').value||''):'';const target=Math.max(1,Math.min(99,Math.round(+$('#ftarget').value)||1)),unit=$('#funit').value.trim(),link=$('#flink')?$('#flink').value:'';
+ if(F.id){const q=S.quests.find(x=>x.id===F.id);if(q.diff!==F.diff)rollMon(Object.assign(q,{diff:F.diff}));if(q.type!==F.type||qTarget(q)!==target){q.prog=Math.min(q.prog||0,target-1)}
+  Object.assign(q,{title:t,cat:F.cat,diff:F.diff,type:F.type,due,target,unit,link})}
+ else{const q={id:uid(),title:t,cat:F.cat,diff:F.diff,type:F.type,due,target,unit,link,done:false,lastDone:null,created:Date.now()};rollMon(q);S.quests.push(q)}
+ save();closeModal();render();SFX.sel()}
+
+/* ===================== renderização ===================== */
+let tab='quests',filter='all';
+try{tab=localStorage.getItem(KEY+'_tab')||'quests'}catch(e){}
+function header(){const n=need(S.level),pct=Math.min(100,S.xp/n*100);
+ return `<div class="topbar">${logo(30,true)}</div><div class="win hdr"><div class="row"><div class="avatar">${hero(S.hero.cls,60)}</div><div class="grow">
+  <div class="row"><div class="name grow">${esc(S.hero.name)}</div><div class="lv px">LV ${S.level}</div></div>
+  <div class="sub">${title(S.level)} · ${clsName(S.hero.cls)}</div>
+  <div class="bar"><i style="width:${pct}%"></i></div>
+  <div class="sub" style="display:flex;justify-content:space-between;font-size:12px"><span>EXP ${S.xp}/${n}</span><span>faltam ${n-S.xp}</span></div>
+ </div></div>
+ <div class="chips"><span class="chip"><b>G</b> ${S.gold}</span><span class="chip">🔥 ${S.streak} dia${S.streak===1?'':'s'}${S.streak?` <b>+${Math.min(S.streak,10)*3}%</b>`:''}</span><span class="chip">Hoje: <b>${todayXp()}</b> EXP</span><span class="chip potchip">${potion(16,!S.potions)} ${S.potions||0} ${elixir(16,!S.elixirs)} ${S.elixirs||0}</span></div></div>`}
+
+function questRow(q){const D=DIFF[q.diff],C=CATS[q.cat];const done=qDone(q),T=qTarget(q),P=qProg(q),mk=qmon(q),sh=!!q.shiny&&!done;
+ const late=!done&&q.due&&q.due<today(),dueToday=!done&&q.due===today();
+ const typ=q.type==='daily'?`↻ diária${q.count?` · ${q.count}x`:''}`:q.type==='weekly'?`↻ semanal${q.count?` · ${q.count}x`:''}`:'';
+ const L=q.link&&S.quests.find(x=>x.id===q.link);
+ return `<div class="q ${done?'done':''} ${sh?'shq':''}"><div class="mon">${mon(mk,32,sh)}${sh?'<b class="spark">✦</b>':''}</div><div class="grow">
+  <div class="t" data-act="qedit" data-id="${q.id}">${esc(q.title)}</div>
+  <div class="meta"><span><i class="dot" style="background:${C.c}"></i>${C.n}</span><span${sh?' class="shn"':''}>${sh?'✦ ':''}${mname(mk)} · ${D.xp} EXP</span>${typ?`<span>${typ}</span>`:''}${q.due&&!done?`<span class="${late?'late':''}">${late?'ATRASADA · ':dueToday?'HOJE · ':''}${fmtDate(q.due)}</span>`:''}</div>
+  ${T>1?`<div class="prog"><div class="bar hp"><i style="width:${P/T*100}%"></i></div><span>${P}/${T} ${esc(q.unit||'')}</span></div>${T<=12?`<div class="pips">${Array.from({length:T},(_,i)=>`<i class="${i<P?'on':''}"></i>`).join('')}</div>`:''}`:''}
+  ${L?`<div class="meta"><span>⤷ soma em: ${esc(L.title)}</span></div>`:''}</div>
+  ${done?`<span class="mut" style="font-size:13px;text-align:right">${q.type==='daily'?'Amanhã':q.type==='weekly'?'Próxima<br>semana':'Feita'}</span>`:`<button class="btn sm" data-act="done" data-id="${q.id}">${T>1?'+1':'Atacar'}</button>`}</div>`}
+
+function viewQuests(){
+ const daily=S.quests.filter(q=>q.type==='daily'),weekly=S.quests.filter(q=>q.type==='weekly');
+ const once=S.quests.filter(q=>q.type==='once'&&!q.done).sort((a,b)=>(a.due||'9999')<(b.due||'9999')?-1:(a.due||'9999')>(b.due||'9999')?1:a.created-b.created);
+ const doneOnce=S.quests.filter(q=>q.type==='once'&&q.done).sort((a,b)=>b.doneAt-a.doneAt);
+ const dDone=daily.filter(qDone).length,wDone=weekly.filter(qDone).length;
+ let h=header();
+ if(S.quests.length<3){
+  h+=`<div class="win"><div class="tb"><span class="who">Rei:</span> ${S.quests.length?'Ótimo começo! Veja o Quadro de Modelos para adicionar mais.':`Bem-vindo à guilda, ${esc(S.hero.name)}! Cada tarefa do seu dia é um monstro. Derrote-os para ganhar EXP e ouro.\n\nComece pelo Quadro de Modelos: há pacotes prontos para o gabinete, saúde e estudos.`}</div>
+  <button class="btn blue wide" style="margin-top:10px" data-act="tpl">📜 Abrir Quadro de Modelos</button></div>`;
+ }
+ if(S.quests.length){
+  h+=`<div class="seg">${[['all','Todas'],['daily','Diárias'],['weekly','Semanais'],['once','Únicas']].map(([k,n])=>`<button data-act="filter" data-id="${k}" class="${filter===k?'on':''}">${n}</button>`).join('')}</div>`;
+  if(filter==='all'||filter==='daily')h+=`<div class="win"><h2>☀ Diárias<span class="cnt">${dDone}/${daily.length}</span></h2>${daily.length?daily.map(questRow).join(''):'<div class="empty">Nenhuma diária. Crie hábitos que renascem todo dia.</div>'}
+   ${daily.length&&dDone===daily.length?'<div class="empty" style="color:var(--xp)">Todas as diárias vencidas hoje! ✦</div>':''}</div>`;
+  if(filter==='all'||filter==='weekly')h+=`<div class="win"><h2>🗓 Semanais<span class="cnt">${wDone}/${weekly.length} · até domingo</span></h2>${weekly.length?weekly.map(questRow).join(''):'<div class="empty">Nenhuma semanal. Elas renascem toda segunda-feira.</div>'}</div>`;
+  if(filter==='all'||filter==='once')h+=`<div class="win"><h2>⚔ Únicas<span class="cnt">${once.length} ativas</span></h2>${once.length?once.map(questRow).join(''):'<div class="empty">Nenhum inimigo à vista.</div>'}
+   ${doneOnce.length?`<details style="margin-top:8px"><summary>▸ Concluídas (${doneOnce.length})</summary>${doneOnce.slice(0,30).map(questRow).join('')}<button class="btn sm ghost" style="margin-top:8px" data-act="clear">Limpar concluídas</button></details>`:''}</div>`;
+ }
+ h+=`<div class="fabs"><button class="btn blue" data-act="tpl">📜 Modelos</button><button class="btn" data-act="new">+ Nova missão</button></div>`;
+ return h}
+/* ---- quadro de modelos ---- */
+const TPL=[
+ {n:'⚖ Gabinete',d:'Meta de 20 minutas/semana dividida em 4 por dia, já interligadas.',items:[
+  {id:'gab_w20',title:'Meta do gabinete: 20 minutas na semana',cat:'trab',diff:'b',type:'weekly',target:20,unit:'processos'},
+  {id:'gab_d4',title:'Minutar 4 processos',cat:'trab',diff:'h',type:'daily',target:4,unit:'processos',link:'gab_w20'},
+  {id:'gab_tri',title:'Triagem: conferir novos conclusos e prazos',cat:'trab',diff:'e',type:'daily'},
+  {id:'gab_rev',title:'Revisar as minutas do dia antes de enviar',cat:'trab',diff:'m',type:'daily'},
+  {id:'gab_pes',title:'Pesquisar jurisprudência para as minutas',cat:'est',diff:'m',type:'daily'},
+  {id:'gab_pauta',title:'Preparar processos para a sessão de julgamento',cat:'trab',diff:'h',type:'weekly'},
+  {id:'gab_inf',title:'Ler informativos de jurisprudência (STJ/STF)',cat:'est',diff:'m',type:'weekly'},
+  {id:'gab_acv',title:'Analisar os processos mais antigos do acervo',cat:'trab',diff:'m',type:'weekly'},
+  {id:'gab_ctl',title:'Atualizar o controle de produtividade',cat:'trab',diff:'e',type:'weekly'}]},
+ {n:'❤ Saúde',d:'Hábitos com contador para ir marcando ao longo do dia.',items:[
+  {id:'sau_agua',title:'Beber 2 L de água',cat:'sau',diff:'m',type:'daily',target:4,unit:'copos de 500 ml'},
+  {id:'sau_along',title:'Pausas para alongar',cat:'sau',diff:'e',type:'daily',target:3,unit:'pausas'},
+  {id:'sau_exer',title:'Fazer 30 min de exercício',cat:'sau',diff:'m',type:'daily'},
+  {id:'sau_treino',title:'Treinar 3 vezes na semana',cat:'sau',diff:'h',type:'weekly',target:3,unit:'treinos'},
+  {id:'sau_sono',title:'Dormir antes da meia-noite',cat:'sau',diff:'e',type:'daily'}]},
+ {n:'📚 Estudos',d:'Blocos de estudo e revisão.',items:[
+  {id:'est_bloco',title:'Estudar 2 blocos de 25 min',cat:'est',diff:'m',type:'daily',target:2,unit:'blocos'},
+  {id:'est_q',title:'Resolver 10 questões',cat:'est',diff:'m',type:'daily',target:10,unit:'questões'},
+  {id:'est_rev',title:'Revisar anotações / flashcards',cat:'est',diff:'e',type:'daily'},
+  {id:'est_livro',title:'Ler 1 capítulo de livro',cat:'est',diff:'m',type:'weekly'}]},
+ {n:'✦ Pessoal',d:'Organização e vida fora do trabalho.',items:[
+  {id:'pes_org',title:'Organizar a mesa e a caixa de entrada',cat:'pes',diff:'e',type:'daily'},
+  {id:'pes_plan',title:'Planejar a semana',cat:'pes',diff:'m',type:'weekly'},
+  {id:'pes_fam',title:'Tempo de qualidade com família/amigos',cat:'pes',diff:'m',type:'weekly'}]}];
+const typN={once:'única',daily:'diária',weekly:'semanal'};
+function tplModal(){modal(`<h2>📜 Quadro de Modelos</h2><div class="mut" style="font-size:13px">Marque as missões que quer adicionar. Você pode editar qualquer uma depois.</div>
+ ${TPL.map((p,pi)=>`<div class="tplpack"><div class="row"><b class="grow">${p.n}</b><button class="btn ghost sm" data-act="tplall" data-id="${pi}">Marcar tudo</button></div><div class="mut" style="font-size:12px;margin:2px 0 6px">${p.d}</div>
+  ${p.items.map(it=>{const has=S.quests.some(q=>q.tpl===it.id);return `<label class="tplit ${has?'has':''}"><input type="checkbox" data-tpl="${it.id}" data-pack="${pi}" ${has?'disabled':''}>${mon(DIFF[it.diff].m,24)}<span class="grow">${esc(it.title)}<small>${typN[it.type]} · ${DIFF[it.diff].n}${it.target>1?` · ${it.target} ${it.unit}`:''}${it.link?' · soma na meta semanal':''}${has?' · ✓ já adicionada':''}</small></span></label>`}).join('')}</div>`).join('')}
+ <div class="actions"><button class="btn ghost" data-act="close">Fechar</button><button class="btn" data-act="tpladd">Adicionar marcadas</button></div>`)}
+function tplAdd(){const ids=[...document.querySelectorAll('[data-tpl]:checked')].map(i=>i.dataset.tpl);if(!ids.length){toast('<div class="grow">Marque ao menos uma missão.</div>');return}
+ const all=TPL.flatMap(p=>p.items);const map={};S.quests.forEach(q=>{if(q.tpl)map[q.tpl]=q.id});const created=[];
+ ids.forEach(t=>{const it=all.find(x=>x.id===t);if(!it)return;const q={id:uid(),tpl:it.id,title:it.title,cat:it.cat,diff:it.diff,type:it.type,due:'',target:it.target||1,unit:it.unit||'',done:false,lastDone:null,created:Date.now()};rollMon(q);S.quests.push(q);map[it.id]=q.id;created.push([q,it])});
+ created.forEach(([q,it])=>{if(it.link&&map[it.link])q.link=map[it.link]});
+ save();closeModal();render();SFX.lvl();toast(`<div class="grow">${created.length} missõ${created.length>1?'es adicionadas':'ão adicionada'}!</div>`)}
+let SUGG=[];
+
+let fMin=25,fCat='est';
+function potionBox(){const n=S.potions||0,e=S.elixirs||0,b=S.focusBank||0,cyc=S.potCycle||0;
+ const nextE=cyc===ELX_CYCLE-1;
+ return `<div class="win"><h2>🧪 Inventário de descanso</h2>
+  <div class="grid2">
+   <div class="invitem"><div class="potslot ${n?'':'locked'}">${potion(52,!n)}${n?`<span class="px">x${n}</span>`:'<span class="lock">🔒</span>'}</div>
+    <div class="iname">Poção</div><div class="sub">${POT_REST} min de descanso</div>
+    <button class="btn blue sm" data-act="drink" data-id="p" ${n?'':'disabled'}>${n?'Beber':'Bloqueada'}</button></div>
+   <div class="invitem"><div class="potslot elx ${e?'':'locked'}">${elixir(52,!e)}${e?`<span class="px">x${e}</span>`:'<span class="lock">🔒</span>'}</div>
+    <div class="iname">Elixir</div><div class="sub">${ELX_REST} min · pausa longa</div>
+    <button class="btn sm" data-act="drink" data-id="e" ${e?'':'disabled'}>${e?'Beber':'Bloqueado'}</button></div>
+  </div>
+  <div class="sub" style="margin-top:12px">Próxima recompensa: ${b}/${POT_EVERY} min de foco → <span style="color:${nextE?'#38e8c8':'#ff6b85'}">${nextE?'Elixir':'Poção'}</span></div>
+  <div class="bar st" style="color:${nextE?'#38e8c8':'#ff4a6a'}"><i style="width:${b/POT_EVERY*100}%"></i></div>
+  <div class="cycle"><span class="sub">Ciclo Pomodoro</span>${[0,1,2,3].map(i=>i<3?`<i class="${i<cyc?'on':''}">${potion(18,i>=cyc)}</i>`:`<i class="${nextE?'next':''}">${elixir(18,true)}</i>`).join('<b>›</b>')}</div>
+  <div class="mut" style="font-size:12px;margin-top:6px">A cada ${POT_EVERY} min de foco você ganha um descanso. Como no Pomodoro clássico, o 4º descanso do ciclo é um Elixir de ${ELX_REST} min.</div></div>`}
+function viewFocus(){let h=header();const f=S.focus;
+ if(f){const F0=FOCUS.find(x=>x.min===f.min)||{m:'skull',n:'Monstro'};const left=Math.max(0,f.endAt-Date.now());const pct=left/(f.min*60000)*100;
+  h+=`<div class="win"><h2>⧗ Batalha de foco</h2><div class="focusfoe"><div class="foe" style="animation:bob 1.2s ease-in-out infinite">${mon(F0.m,120,f.shiny)}</div></div>
+   <div style="text-align:center">${f.shiny?'<span class="shn">✦ ESPECIAL ✦</span> ':''}${F0.n}</div><div class="bar hp"><i id="fhp" style="width:${pct}%"></i></div>
+   <div class="timer px" id="ftime">${z(Math.floor(left/60000))}:${z(Math.floor(left/1000)%60)}</div>
+   <div class="tb mut" style="text-align:center;font-size:14px">Concentre-se em <span style="color:${CATS[f.cat].c}">${CATS[f.cat].n}</span>. Cada segundo de foco é um golpe no monstro. Pode bloquear a tela — o tempo continua contando.</div>
+   <div class="row" style="margin-top:10px;font-size:13px">${potion(26)}<div class="grow mut">${(()=>{const r=calcRests(f.min,false);return (r.p||r.e)?`Vencer esta batalha rende ${restTxt(r)}.`:`Progresso da próxima poção ao vencer: ${(S.focusBank||0)+f.min}/${POT_EVERY} min.`})()}</div></div>
+   <button class="btn red wide" style="margin-top:12px" data-act="flee">Fugir da batalha</button></div>`}
+ else if(S.rest){const r=S.rest,left=Math.max(0,r.endAt-Date.now());
+  h+=`<div class="win"><h2>🧪 ${r.kind==='e'?'Pausa longa (Elixir)':'Descanso'}</h2><div class="restscene"><div class="zzz px">z<span>z</span><span>Z</span></div>${hero(S.hero.cls,110)}<div class="fire">${r.kind==='e'?elixir(44):potion(44)}</div></div>
+   <div style="text-align:center">HP / MP se recuperando...</div><div class="bar"><i id="rhp" style="width:${100-left/(r.min*60000)*100}%"></i></div>
+   <div class="timer px" id="rtime">${z(Math.floor(left/60000))}:${z(Math.floor(left/1000)%60)}</div>
+   <div class="tb mut" style="text-align:center;font-size:14px">Levante, alongue-se, beba água e descanse os olhos. A próxima batalha de foco libera quando o descanso acabar.</div>
+   <button class="btn ghost wide" style="margin-top:12px" data-act="restend">Encerrar descanso</button></div>`}
+ else{h+=potionBox()+`<div class="win"><h2>⧗ Batalha de foco</h2><div class="tb"><span class="who">Mestre:</span> Escolha um inimigo e lute sem distrações até o fim do tempo. Se fugir, ele escapa e você não ganha nada.</div>
+  <label class="f">Inimigo</label><div class="pick c2">${FOCUS.map(x=>`<button data-act="fmin" data-id="${x.min}" class="${fMin===x.min?'on':''}">${mon(x.m,40)}<span class="px" style="font-size:11px">${x.min} min</span><small>${x.min} EXP · ${Math.round(x.min/5)} G</small></button>`).join('')}</div>
+  <div class="mut" style="text-align:center;font-size:13px;margin-top:6px">${FOCUS.find(x=>x.min===fMin).n}</div>
+  <label class="f">Área de foco</label><div class="pick c4">${Object.entries(CATS).map(([k,c])=>`<button data-act="fcat" data-id="${k}" class="${fCat===k?'on':''}"><span style="color:${c.c}">${c.a}</span>${c.n}</button>`).join('')}</div>
+  <button class="btn wide" style="margin-top:14px" data-act="fstart">Iniciar batalha</button></div>
+  <div class="win"><h2>Registro de foco</h2><div class="grid2"><div class="kv"><b>${S.stats.focus}</b><span>batalhas vencidas</span></div><div class="kv"><b>${Math.floor(S.stats.focusMin/60)}h ${S.stats.focusMin%60}m</b><span>tempo focado</span></div></div></div>`}
+ return h}
+
+let editRw=false;const bestShiny={};
+function viewTavern(){let h=header();
+ h+=`<div class="win"><h2>♦ Taverna do Dragão Dourado<span class="cnt">${S.gold} G</span></h2><div class="tb"><span class="who">Taverneira:</span> Gaste seu ouro com recompensas de verdade. Você mereceu, herói!</div></div>
+ <div class="win"><h2>Cardápio<button class="btn sm ghost" style="margin-left:auto" data-act="rwedit">${editRw?'Pronto':'Editar'}</button></h2>
+ ${S.rewards.length?S.rewards.map(r=>`<div class="rw"><div class="grow"><div>${esc(r.title)}</div><div class="price">${r.cost} G</div></div>
+  ${editRw?`<button class="x" data-act="rwdel" data-id="${r.id}">✕</button>`:`<button class="btn sm" data-act="buy" data-id="${r.id}" ${S.gold<r.cost?'disabled':''}>Comprar</button>`}</div>`).join(''):'<div class="empty">Nenhuma recompensa. Crie uma abaixo.</div>'}
+ <label class="f">Nova recompensa</label><div class="row"><input class="in grow" id="rwt" maxlength="60" placeholder="Ex.: Pedir uma pizza"><input class="in" id="rwc" type="number" min="1" inputmode="numeric" placeholder="G" style="width:76px"></div>
+ <button class="btn blue wide" style="margin-top:8px" data-act="rwadd">Adicionar ao cardápio</button></div>`;
+ return h}
+
+function viewHero(){const C=CLASSES[S.hero.cls];const mx=Math.max(...Object.keys(CATS).map(attr),5);
+ let h=`<div class="win" style="text-align:center"><div style="display:grid;place-items:center;margin:6px 0 4px">${hero(S.hero.cls,128)}</div>
+  <div class="name">${esc(S.hero.name)}</div><div class="sub">${clsName(S.hero.cls)} · ${title(S.level)} · <span class="lv px">LV ${S.level}</span></div><div class="sub" style="margin-top:4px">${C.d}</div></div>
+ <div class="win"><h2>✦ Linha de evolução</h2><div class="evo">${[0,1,2].map(i=>{const on=stageOf(S.level)>=i;return `${i?'<b>▶</b>':''}<div class="${on?'':'off'} ${stageOf(S.level)===i?'cur':''}">${on?hero(S.hero.cls,64,null,i):heroSil(S.hero.cls,64,i)}<span>${on?evoN(S.hero.cls,i):'???'}</span><i class="px">LV ${EVO_LV[i]}</i></div>`}).join('')}</div>
+  <div class="mut" style="font-size:12px;margin-top:8px">${stageOf(S.level)<2?`Próxima evolução no nível ${EVO_LV[stageOf(S.level)+1]} (faltam ${EVO_LV[stageOf(S.level)+1]-S.level} níveis).`:'Forma final alcançada. Lendário!'}</div></div>
+ <div class="win"><h2>Atributos</h2>${Object.entries(CATS).map(([k,c])=>`<div class="stat"><span style="color:${c.c}">${c.a}</span><div class="bar st" style="color:${c.c}"><i style="width:${attr(k)/mx*100}%"></i></div><span class="px" style="font-size:11px;text-align:right">${attr(k)}</span></div>`).join('')}
+  <div class="mut" style="font-size:12px;margin-top:6px">Força = Trabalho · Inteligência = Estudos · Vitalidade = Saúde · Carisma = Pessoal. Sobem conforme você ganha EXP em cada área.</div></div>
+ <div class="win"><h2>Status</h2><div class="grid2">
+  <div class="kv"><b>${S.totalXp}</b><span>EXP total</span></div><div class="kv"><b>${S.stats.done}</b><span>monstros derrotados</span></div>
+  <div class="kv"><b>${S.streak} 🔥</b><span>sequência atual</span></div><div class="kv"><b>${S.best}</b><span>melhor sequência</span></div>
+  <div class="kv"><b>${S.stats.bosses}</b><span>chefes vencidos</span></div><div class="kv"><b>${S.stats.goldEarned} G</b><span>ouro conquistado</span></div></div>
+  <div class="mut" style="font-size:12px;margin-top:8px">Sequência: complete ao menos 1 missão por dia. Cada dia seguido dá +3% de EXP (até +30%).</div></div>
+ <div class="win"><h2>📖 Bestiário<span class="cnt">${BEST.filter(k=>S.bestiary[k]).length}/${BEST.length} · <span class="shn">✦ ${Object.keys(S.shinyDex).length}</span></span></h2>
+  ${[['e','Fáceis'],['m','Médios'],['h','Difíceis'],['b','Chefes']].map(([d,n])=>`<div class="tier">${n}</div><div class="best">${DIFF[d].pool.map(k=>S.bestiary[k]?`<div class="${S.shinyDex[k]?'gotsh':''}" ${S.shinyDex[k]?`data-act="bshiny" data-id="${k}"`:''}>${S.shinyDex[k]?`<b class="spark">✦</b>`:''}${mon(k,44,!!S.shinyDex[k]&&bestShiny[k])}<span>${mname(k)}</span><i>${S.bestiary[k]}x${S.shinyDex[k]?` · ✦${S.shinyDex[k]}`:''}</i></div>`:`<div class="off">${svg(SPR[k].rows,Object.fromEntries(Object.keys(SPR[k].pal).map(c=>[c,'#2c3478'])),44)}<span>???</span><i>&nbsp;</i></div>`).join('')}</div>`).join('')}
+  <div class="mut" style="font-size:12px;margin-top:8px">Cada missão sorteia um monstro da sua dificuldade. Há 1 chance em 12 de surgir uma versão <span class="shn">✦ especial</span>, com cores raras e recompensa em dobro. Toque num monstro especial já capturado para alternar as cores.</div></div>
+ <div class="win"><h2>🏆 Conquistas<span class="cnt">${Object.keys(S.ach).length}/${ACH.length}</span></h2><div class="ach">${ACH.map(a=>S.ach[a[0]]?`<div class="on">${a[1]}<i>${a[2]}</i></div>`:`<div class="off">???<i>${a[2]}</i></div>`).join('')}</div></div>
+ <div class="win"><h2>📜 Diário de aventura</h2><div class="log">${S.log.length?S.log.slice(0,40).map(l=>{const d=new Date(l.t);return `<div><span class="mut">${z(d.getDate())}/${z(d.getMonth()+1)}</span><span>${esc(l.txt)}</span><span>${l.xp?'+'+l.xp+' EXP':''}${l.g<0?` <span style="color:var(--gold)">${l.g} G</span>`:''}</span></div>`}).join(''):'<div class="empty">Sua lenda ainda não começou.</div>'}</div></div>
+ <div class="win"><h2>⚙ Configurações</h2>
+  <div class="switch"><span>Efeitos sonoros</span><button class="btn sm ${S.sound?'':'ghost'}" data-act="sound">${S.sound?'Ligado':'Desligado'}</button></div>
+  <details class="sfxlist"><summary>▸ Lista de efeitos (${SFX_LIST.length})</summary>${SFX_LIST.map(([k,n,d])=>`<div class="sfx"><div class="grow">♪ ${n}<small>${d}</small></div><button class="btn sm ghost" data-act="sfxtest" data-id="${k}">▶ Testar</button></div>`).join('')}
+  ${S.sound?'':'<div class="mut" style="font-size:12px;margin-top:6px">Os sons estão desligados no app, mas o botão Testar toca mesmo assim.</div>'}</details>
+  <div class="switch" style="flex-wrap:wrap;gap:8px"><span>Tom de pele</span><div class="skins" style="margin:0">${SKINS.map((t,i)=>`<button aria-label="Tom de pele ${i+1}" data-act="skin" data-id="${i}" class="${(S.hero.skin??1)===i?'on':''}" style="width:30px;height:30px;background:linear-gradient(135deg,${t[0]} 55%,${t[1]} 55%)"></button>`).join('')}</div></div>
+  <div class="switch"><span>Notificações<small class="mut" style="display:block;font-size:11px">fim do foco e do descanso</small></span><button class="btn sm ${S.notif?'':'ghost'}" data-act="notif">${S.notif?'Ligadas':'Desligadas'}</button></div>
+  <div class="switch"><span>Personagem</span><div class="seg" style="margin:0;width:170px"><button data-act="gender" data-id="m" class="${!isF()?'on':''}">Herói</button><button data-act="gender" data-id="f" class="${isF()?'on':''}">Heroína</button></div></div>
+  <div class="switch"><span>Nome do herói</span><button class="btn sm ghost" data-act="rename">Alterar</button></div>
+  <div class="switch"><span>Backup do save</span><button class="btn sm ghost" data-act="backup">Exportar / Importar</button></div>
+  <div class="switch"><span class="mut" style="font-size:13px">${syncState}</span></div>
+  <button class="btn red wide" style="margin-top:8px" data-act="reset">Recomeçar jornada</button></div>`;
+ return h}
+
+let obCls='war',obSkin=1,obG='m';
+function viewOnboard(){return `<div class="logo">${logo(200)}</div><div class="tag">O RPG da sua produtividade</div>
+ <div class="win"><div class="tb"><span class="who">???:</span> Um novo herói desperta no reino da Procrastinação... Qual é o seu nome?</div>
+ <input class="in" id="obname" maxlength="20" placeholder="Seu nome de herói" style="margin-top:10px"></div>
+ <div class="win"><h2>Escolha sua classe</h2><div class="seg" style="margin-bottom:8px"><button data-act="obg" data-id="m" class="${obG==='m'?'on':''}">Herói</button><button data-act="obg" data-id="f" class="${obG==='f'?'on':''}">Heroína</button></div><label class="f" style="margin-top:0;text-align:center">Tom de pele</label>
+ <div class="skins" style="margin-bottom:12px">${SKINS.map((t,i)=>`<button aria-label="Tom de pele ${i+1}" data-act="obskin" data-id="${i}" class="${obSkin===i?'on':''}" style="background:linear-gradient(135deg,${t[0]} 55%,${t[1]} 55%)"></button>`).join('')}</div><div class="classes">${Object.entries(CLASSES).map(([k,c])=>`<button data-act="obcls" data-id="${k}" class="${obCls===k?'on':''}">${hero(k,72,obSkin,0,obG)}<span>${evoN(k,0,obG)}</span><small>${c.d}</small></button>`).join('')}</div>
+ <button class="btn wide" style="margin-top:14px" data-act="obgo">Iniciar aventura ▶</button></div>`}
+
+function render(){
+ const A=$('#app');
+ if(!S.hero){A.innerHTML=viewOnboard();$('#tabs').style.display='none';return}
+ $('#tabs').style.display='';
+ document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.id===tab));
+ A.innerHTML=tab==='focus'?viewFocus():tab==='tavern'?viewTavern():tab==='hero'?viewHero():viewQuests();
+}
+
+/* ===================== ações ===================== */
+const ACT={
+ tab:id=>{tab=id;try{localStorage.setItem(KEY+'_tab',id)}catch(e){}SFX.sel();render();scrollTo(0,0)},
+ filter:id=>{filter=id;render()},
+ new:()=>{SFX.sel();questForm()},
+ qedit:id=>questForm(id),
+ fset:(id,el)=>{F[el.dataset.k]=id;el.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));if(el.dataset.k==='type')$('#fduewrap').style.display=id!=='once'?'none':'';SFX.sel()},
+ qsave:saveQuest,
+ qdel:id=>ask('Excluir esta missão? O inimigo fugirá para sempre.','Excluir',()=>{S.quests=S.quests.filter(q=>q.id!==id);save();render()}),
+ done:id=>complete(id),
+ undo:()=>{if(!undoSnap)return;S=migrate(JSON.parse(undoSnap));undoSnap=null;save();render();$('#toast').classList.remove('show')},
+ clear:()=>ask('Remover todas as missões concluídas da lista? (O EXP ganho continua.)','Limpar',()=>{S.quests=S.quests.filter(q=>q.type==='daily'||!q.done);save();render()}),
+ bshiny:id=>{bestShiny[id]=!bestShiny[id];render()},
+ tpl:()=>{SFX.sel();tplModal()},
+ tpladd:tplAdd,
+ tplall:id=>{document.querySelectorAll(`[data-pack="${id}"]:not(:disabled)`).forEach(i=>i.checked=true)},
+ tgt:id=>{const i=$('#ftarget');i.value=Math.max(1,Math.min(99,(+i.value||1)+(+id)))},
+ sugg:id=>{const s=SUGG[+id];if(!s)return;S.quests.push({id:uid(),mon:pickMon(s[2]),title:s[0],cat:s[1],diff:s[2],type:s[3],due:'',done:false,lastDone:null,created:Date.now()});SFX.sel();save();render()},
+ close:closeModal,
+ askok:()=>{closeModal();const c=askCb;askCb=null;c&&c()},
+ fmin:id=>{fMin=+id;SFX.sel();render()},
+ fcat:id=>{fCat=id;SFX.sel();render()},
+ fstart:()=>{if(S.rest)return;S.focus={start:Date.now(),endAt:Date.now()+fMin*60000,min:fMin,cat:fCat,shiny:Math.random()<SHINY_RATE};SFX.hit();save();render()},
+ flee:()=>{const el=Math.floor((Date.now()-S.focus.start)/60000);ask(`Fugir da batalha? O monstro escapa e você não ganha EXP.${el?`<br><span class="mut" style="font-size:14px">Os ${el} min que você já focou ainda contam para a próxima poção.</span>`:''}`,'Fugir',()=>{const e=Math.min(S.focus.min,Math.floor((Date.now()-S.focus.start)/60000));S.focus=null;const n=addFocusTime(e);addLog(`Fugiu de uma batalha de foco (${e} min contados)`,0,0);save();render();if(n.p||n.e)toast(`${n.e?elixir(28):potion(28)}<div class="grow">Você obteve ${restTxt(n)}!</div>`)})},
+ drink:id=>{if(S.focus||S.rest)return;const el=id==='e';if(el?!(S.elixirs>0):!(S.potions>0))return;if(el){S.elixirs--;S.stats.elxUsed++}else{S.potions--;S.stats.potUsed++}const m=el?ELX_REST:POT_REST;S.rest={start:Date.now(),endAt:Date.now()+m*60000,min:m,kind:el?'e':'p'};addLog(el?'Bebeu um Elixir (pausa longa)':'Bebeu uma Poção de Descanso',0,0);const got=checkAch();el?SFX.elixir():SFX.drink();save();render();achToasts(got)},
+ restend:()=>ask('Encerrar o descanso agora? O tempo restante será perdido.','Encerrar',()=>{S.rest=null;save();render()},false),
+ rwedit:()=>{editRw=!editRw;render()},
+ rwdel:id=>{S.rewards=S.rewards.filter(r=>r.id!==id);save();render()},
+ rwadd:()=>{const t=$('#rwt').value.trim(),c=Math.round(+$('#rwc').value);if(!t||!(c>0)){toast('<div class="grow">Informe o nome e o preço em ouro.</div>');return}
+  S.rewards.push({id:uid(),title:t,cost:c});save();render();SFX.sel()},
+ buy:id=>{const r=S.rewards.find(x=>x.id===id);if(!r||S.gold<r.cost)return;
+  ask(`Comprar <span style="color:var(--gold)">${esc(r.title)}</span> por ${r.cost} G?`,'Comprar',()=>{S.gold-=r.cost;S.stats.bought++;addLog('Comprou: '+r.title,0,-r.cost);const got=checkAch();save();render();SFX.buy();
+   toast(`<span style="font-size:22px">🍺</span><div class="grow">Aproveite: <span style="color:var(--gold)">${esc(r.title)}</span>!</div>`,2600,()=>achToasts(got))},false)},
+ skin:id=>{S.hero.skin=+id;save();render();SFX.sel()},
+ sfxtest:id=>testSfx(id),
+ notif:async()=>{if(S.notif){S.notif=false;save();render();return}
+  if(!('Notification' in window)){toast('<div class="grow">Este navegador não suporta notificações.</div>');return}
+  let p=Notification.permission;if(p!=='granted')p=await Notification.requestPermission();
+  if(p==='granted'){S.notif=true;save();render();notify('Notificações ligadas!','Você será avisado ao fim do foco e do descanso.')}else toast('<div class="grow">Permissão negada. Libere nas configurações do Android.</div>')},
+ sound:()=>{S.sound=!S.sound;save();render();SFX.sel()},
+ rename:()=>{modal(`<h2>Novo nome</h2><input class="in" id="rn" maxlength="20" value="${esc(S.hero.name)}"><div class="actions"><button class="btn ghost" data-act="close">Cancelar</button><button class="btn" data-act="rnok">Salvar</button></div>`)},
+ rnok:()=>{const n=$('#rn').value.trim();if(n){S.hero.name=n;save()}closeModal();render()},
+ backup:()=>{modal(`<h2>Backup do save</h2><div class="mut" style="font-size:13px">Copie o código abaixo para guardar seu progresso, ou cole um código salvo e toque em Importar.</div>
+  <textarea class="in" id="bk" style="margin-top:8px">${esc(btoa(unescape(encodeURIComponent(JSON.stringify(S)))))}</textarea>
+  <div class="actions"><button class="btn blue" data-act="bkcopy">Copiar</button><button class="btn" data-act="bkimp">Importar</button></div><button class="btn ghost wide" style="margin-top:8px" data-act="close">Fechar</button>`)},
+ bkcopy:async()=>{try{await navigator.clipboard.writeText($('#bk').value);toast('<div class="grow">Código copiado!</div>')}catch(e){$('#bk').select();toast('<div class="grow">Selecione e copie manualmente.</div>')}},
+ bkimp:()=>{try{const o=JSON.parse(decodeURIComponent(escape(atob($('#bk').value.trim()))));if(!o||!o.hero)throw 0;S=migrate(o);checkStreak();save();closeModal();render();toast('<div class="grow">Save importado com sucesso!</div>')}catch(e){toast('<div class="grow">Código inválido.</div>')}},
+ reset:()=>ask('Recomeçar a jornada? Todo o progresso (nível, ouro, missões e conquistas) será apagado.','Apagar tudo',()=>{S=fresh();save();tab='quests';render()}),
+ obg:id=>{obG=id;const n=$('#obname').value;SFX.sel();render();$('#obname').value=n},
+ gender:id=>{S.hero.gender=id;save();render();SFX.sel()},
+ obskin:id=>{obSkin=+id;const n=$('#obname').value;SFX.sel();render();$('#obname').value=n},
+ obcls:id=>{obCls=id;const n=$('#obname').value;SFX.sel();render();$('#obname').value=n},
+ obgo:()=>{const n=$('#obname').value.trim();if(!n){$('#obname').focus();$('#obname').style.borderColor='#ff5470';return}
+  S.hero={name:n,cls:obCls,skin:obSkin,gender:obG};addLog('Início da jornada',0,0);save();SFX.lvl();render()},
+};
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const f=ACT[el.dataset.act];if(f){e.preventDefault();f(el.dataset.id,el,e)}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ftitle')saveQuest();if(e.key==='Enter'&&e.target.id==='obname')ACT.obgo()});
+
+/* ===================== loop do foco / virada de dia ===================== */
+let lastDay=today();
+function finishFocus(){const f=S.focus;if(!f)return;notify('Batalha de foco vencida!','Hora de descansar: abra o app para beber sua poção.');S.focus=null;const F0=FOCUS.find(x=>x.min===f.min)||FOCUS[1];
+ touchStreak();const pots=addFocusTime(f.min);const r=award(f.shiny?Math.round(f.min*1.5):f.min,Math.round(f.min/5)*(f.shiny?2:1),f.cat);S.bestiary[F0.m]=(S.bestiary[F0.m]||0)+1;if(f.shiny){S.shinyDex[F0.m]=(S.shinyDex[F0.m]||0)+1;S.stats.shiny++}S.stats.focus++;S.stats.focusMin+=f.min;
+ addLog(`${f.shiny?'✦ ':''}${F0.n} derrotad${art(F0.m)} (${f.min} min de foco)`,r.xp,r.gold,f.cat);checkDay();const got=checkAch();save();render();
+ battle(F0.m,F0.n,`Foco absoluto! ${art(F0.m).toUpperCase()} ${F0.n} foi derrotad${art(F0.m)}!\n+${r.xp} EXP   +${r.gold} G${(pots.p||pots.e)?`\nVocê obteve ${restTxt(pots)}!`:''}`,()=>levelUps(r.ups,()=>achToasts(got)),f.shiny)}
+function finishRest(){notify('Descanso concluído!','HP e MP restaurados. Hora de voltar à batalha!');S.rest=null;save();render();SFX.rest();
+ const B=$('#battle');B.innerHTML=`<div class="stage"><div class="rays"></div><div class="jump">${hero(S.hero.cls,130)}</div></div>
+  <div class="win" style="margin-top:16px"><div class="tb" id="rtxt"></div><button class="btn wide" id="rok" style="margin-top:12px">Voltar à aventura</button></div>`;
+ B.classList.add('show');typeText($('#rtxt'),`Descanso concluído!\nO HP e o MP de ${S.hero.name} foram totalmente restaurados.\nHora de voltar à batalha!`);
+ $('#rok').onclick=e=>{e.stopPropagation();B.classList.remove('show')}}
+setInterval(()=>{
+ if(S.rest){const left=S.rest.endAt-Date.now();if(left<=0)finishRest();
+  else if(tab==='focus'){const t=$('#rtime'),hp=$('#rhp');if(t)t.textContent=z(Math.floor(left/60000))+':'+z(Math.floor(left/1000)%60);if(hp)hp.style.width=(100-left/(S.rest.min*60000)*100)+'%'}}
+ if(S.focus){const left=S.focus.endAt-Date.now();if(left<=0)finishFocus();
+  else if(tab==='focus'){const t=$('#ftime'),hp=$('#fhp');if(t)t.textContent=z(Math.floor(left/60000))+':'+z(Math.floor(left/1000)%60);if(hp)hp.style.width=(left/(S.focus.min*60000)*100)+'%'}}
+ if(today()!==lastDay){lastDay=today();checkStreak();if(!$('#modal').classList.contains('show'))render()}
+},1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.hero&&!$('#modal').classList.contains('show')&&!$('#battle').classList.contains('show'))render()});
+
+render();
+/* ===================== PWA: offline, notificações, armazenamento ===================== */
+syncState='Salvo neste aparelho (use o Backup)';
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+async function notify(t,b){try{if(!S.notif||!('Notification' in window)||Notification.permission!=='granted')return;
+ const r=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();const o={body:b,icon:'icon-192.png',badge:'badge-96.png',vibrate:[200,100,200,100,300],tag:'questlog'};
+ if(r)r.showNotification(t,o);else new Notification(t,o)}catch(e){}
+ try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
+</script>
+</body>
+</html>
