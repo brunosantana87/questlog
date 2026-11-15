@@ -77,6 +77,7 @@ body.lay-modern .ov .win{border-radius:22px}
 .lookpick .sw{width:100%;height:30px;border-radius:6px;display:flex;overflow:hidden;border:1px solid #0003}
 .lookpick .sw i{flex:1}
 .lookpick .lay{width:100%;height:30px;border-radius:6px;display:grid;place-items:center;font-size:11px}
+.mastb{margin:2px 0 8px;padding:6px 8px;border:1px solid var(--gold,#e8c35a);border-radius:6px;font-size:13px;color:var(--gold,#e8c35a)}
 </style>
 <style>
 :root{--p1:#0a1050;--p2:#050833;--p3:#1d2a85;--sh:#04062a;--sh2:#05072a;--b0:#ffffff1a;--b1:#ffffff22;--b2:#ffffff33;--b3:#ffffff44;--b4:#ffffff55;--b5:#ffffff66;--bg:#0b0f2a;--w1:#26348f;--w2:#111952;--line:#e9ecff;--gold:#ffd447;--xp:#4dffb0;--hp:#ff5470;--mut:#aab2e6;--txt:#fff}
@@ -515,6 +516,10 @@ body.lay-modern .ihspr{border:0;border-radius:18px;box-shadow:0 0 0 2px var(--go
 .armfx.arm-gold>svg{filter:drop-shadow(0 0 4px #ffd447aa);animation:armPulse 2.4s ease-in-out infinite}
 .armfx.arm-plat>svg{filter:drop-shadow(0 0 4px #9ad8ffaa)}
 .armfx.arm-plat::after{content:'✦';position:absolute;top:22%;right:18%;color:#e0f4ff;font-size:12px;line-height:1;text-shadow:0 0 6px #9ad8ff;animation:twk 2.2s ease-in-out infinite}
+.ascfx.v-solar>svg{animation:vSun 2.2s ease-in-out infinite}@keyframes vSun{50%{filter:drop-shadow(0 0 10px #ffa830)}}
+.ascfx.v-cristal>i{border-radius:0;transform:rotate(45deg);background:#e8fcff}.ascfx.v-cristal>svg{animation:vCrys 3s ease-in-out infinite}@keyframes vCrys{0%,100%{filter:drop-shadow(0 0 4px #7ae8ff)}50%{filter:drop-shadow(0 0 9px #c060ff) brightness(1.08)}}
+.ascfx.v-abissal>i{border-radius:50%;background:#d890ff}.ascfx.v-abissal>svg{animation:vVoid 2.6s ease-in-out infinite}@keyframes vVoid{50%{filter:drop-shadow(0 0 11px #9a30ff)}}
+.ascfx.v-verde>i{background:#a0ffb8}
 @keyframes armPulse{50%{filter:drop-shadow(0 0 9px #ffd447)}}
 @keyframes twk{0%,60%,100%{opacity:0;transform:scale(.4)}75%{opacity:1;transform:scale(1.1)}}
 .ascpick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -669,6 +674,7 @@ const armorOk=a=>S.level>=a.lv||(S.rebirths||0)>0;
 const SKINS=[["#ffe3cc","#e9b59a","#fff3e8"],["#f7c9a0","#d89a70","#ffe0c4"],["#e2a77a","#b97b52","#f2c49c"],["#b97a4c","#8a5333","#d49a6a"],["#8c5734","#61391f","#a8724a"],["#5e3a24","#3d2414","#7a5038"]];
 const EVO_LV=[1,10,20,40];
 const EVO={war:["Guerreiro","Cavaleiro","Paladino"],mag:["Mago","Feiticeiro","Arquimago"],mon:["Monge","Mestre Ki","Grão-Mestre"],bar:["Bardo","Menestrel","Maestro Lendário"]};
+const mastN=()=>S&&S.mastered&&S.hero?Object.keys(S.mastered).filter(c=>c!==S.hero.cls).length:0,mastB=()=>mastN()*.5;
 const isMastered=c=>!!(S&&S.mastered&&S.mastered[c||(S.hero&&S.hero.cls)]);
 const stageOf=L=>S&&S.hero&&isMastered()?2:L>=20?2:L>=10?1:0;
 
@@ -692,6 +698,23 @@ const TECHS={war:[{id:'slash',n:'Corte',d:'Salta e corta o inimigo.'},{id:'cross
  bar:[{id:'note',n:'Nota Mágica',d:'Lança uma nota encantada.'},{id:'chord',n:'Acorde Sônico',cost:500,d:'Ondas de choque em anéis.'},{id:'song',n:'Sinfonia',cost:900,d:'Rajada de cinco notas.'}]};
 const CLOUD=(()=>{const R=['....aaaa..aaa......','..aaaaaaaaaaaaa....','.aaabbaaaaaaaaaaa..','aaaaaaaaabbaaaaaaaa','aaaaaaaaaaaaaaaaaaa','.cccaccccacccaccc..'],P={a:'#4a4e66',b:'#6a6e88',c:'#2c2e40'};let r='';R.forEach((row,y)=>{for(let x=0;x<row.length;x++)if(P[row[x]])r+=`<rect x="${x}" y="${y}" width="1.03" height="1.03" fill="${P[row[x]]}"/>`});return `<svg viewBox="0 0 19 6" width="114" height="36" shape-rendering="crispEdges">${r}</svg>`})();
 const ELEM={flame:'#ff7a2a',firestaff:'#ff6a2a',starstaff:'#ffe066',thunder:'#fff27a',violin:'rainbow'};
+const ASCV=[
+ {id:'solar',p:'light',n:'Variante Solar',cost:2500,fx:'#ffa830',r:{main:['#b8743a','#ecc08a','#fff0d8','#fffaf2'],trim:['#7a2008','#d85818','#ff9a3a','#ffd690'],glow:['#ff4a10','#ffa830','#fff0a0']}},
+ {id:'cristal',p:'light',n:'Variante Cristal',cost:2500,fx:'#7ae8ff',r:{main:['#126470','#48bccc','#aef0f6','#f0ffff'],trim:['#5a4a9a','#a898e0','#e0d8ff','#ffffff'],glow:['#c060ff','#e8b0ff','#fff0ff']}},
+ {id:'abissal',p:'dark',n:'Variante Abissal',cost:2500,fx:'#b06aff',r:{main:['#2c1a48','#4a2c74','#6c44a2','#a07ad8'],acc:['#24083e','#56168e','#8a3ad8','#c48cff'],glow:['#9a30ff','#d890ff','#f8e8ff'],bone:['#3a3050','#7a6a9a','#c8b8e8']}},
+ {id:'verde',p:'dark',n:'Variante Chama Verde',cost:2500,fx:'#2aff6a',r:{main:['#1a3a2e','#2e5a48','#4a8268','#80b89a'],acc:['#06341a','#108838','#28d860','#a0ffb4'],glow:['#1aff5a','#a0ffb8','#f0fff2'],bone:['#46564c','#98ae9e','#e2f2e6']}}];
+const ascUnl=()=>!!(S.asc||Object.values(S.mastered||{}).some(m=>m&&m.asc));
+const hx2=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+function hls(h){const[r,g,b]=hx2(h).map(v=>v/255),mx=Math.max(r,g,b),mn=Math.min(r,g,b),L=(mx+mn)/2;if(mx===mn)return[0,0,L];const d=mx-mn,S2=L<=.5?d/(mx+mn):d/(2-mx-mn);let H=mx===r?(g-b)/d:mx===g?2+(b-r)/d:4+(r-g)/d;H=((H/6)%1+1)%1;return[H*360,S2,L]}
+function rampAt(R,t){t=Math.max(0,Math.min(1,t));const n=R.length-1,i=Math.min(Math.floor(t*n),n-1),f=t*n-i,a=hx2(R[i]),b=hx2(R[i+1]);return '#'+a.map((v,k)=>Math.round(v+(b[k]-v)*f).toString(16).padStart(2,'0')).join('')}
+function ascvGrp(p,h){const[H,S2,L]=hls(h);if(p==='light'){if(L<.22)return 'keep';if(H>=25&&H<=60)return 'trim';if(H<205&&S2>.5||L<.5||S2>.9)return 'glow';return 'main'}
+ if(H>=30&&H<=45&&L>.45)return 'bone';if(S2>.9&&(H<=30||H>=350))return 'glow';if((H>=335||H<=12)&&S2>.5)return 'acc';if(H>=35&&H<=50&&S2>.6)return 'acc';if(S2>.6&&L>.35)return 'glow';return 'main'}
+const ASCV_C={};
+function ascvPal(A,p,V){const k=V.id+'|'+A.rows.length+'|'+Object.values(A.pal).join('');if(ASCV_C[k])return ASCV_C[k];const G={},pal=Object.assign({},A.pal);
+ for(const[c,h]of Object.entries(A.pal)){if(c==='a')continue;const g=ascvGrp(p,h);if(g!=='keep')(G[g]=G[g]||[]).push(c)}
+ for(const[g,ks]of Object.entries(G)){const Ls=ks.map(c=>hls(A.pal[c])[2]),lo=Math.min(...Ls),hi=Math.max(...Ls);ks.forEach(c=>{const t=hi>lo?(hls(A.pal[c])[2]-lo)/(hi-lo):.6;pal[c]=rampAt(V.r[g],t)})}
+ return ASCV_C[k]=pal}
+const curV=(p,o)=>{const id=(o&&o.ascv!==undefined)?o.ascv:(S&&S.eq&&S.eq.ascv&&S.eq.ascv[p]);return id?ASCV.find(v=>v.id===id&&v.p===p)||null:null};
 const EQ=()=>S.eq||(S.eq={color:null,acc:null,weapon:{},tech:{}});
 const curW=c=>{c=c||S.hero.cls;const w=EQ().weapon[c];return w&&WEAPONS[c].some(x=>x.id===w)?w:WEAPONS[c][0].id};
 const curT=c=>{c=c||S.hero.cls;const t=EQ().tech[c];return t&&TECHS[c].some(x=>x.id===t)?t:TECHS[c][0].id};
@@ -717,7 +740,7 @@ function pixSvg(px,size,sil,split){let x0=0,y0=0,x1=23,y1=31;px.forEach((c,k)=>{
  if(split)r=`<g class="kb">${r}</g><g class="kr">${r2}</g>`;
  const w=x1-x0+1,h=y1-y0+1,sc=size/32;return `<svg class="spr" viewBox="${x0} ${y0} ${w} ${h}" width="${Math.round(w*sc)}" height="${Math.round(h*sc)}" shape-rendering="crispEdges">${r}</svg>`}
 function hero(cls,size,skin,stage,g,o){if(skin==null)skin=(S.hero&&S.hero.skin!=null)?S.hero.skin:1;if(stage==null)stage=S.hero?dispStage():0;
- if(stage===3){const p=(o&&o.path)||S.asc||'light',A=ASC[cls][p][isF(g)?'f':'m'],k='A|'+[cls,size,p,isF(g)?'f':'m'].join('|');if(HCACHE[k])return HCACHE[k];const px=new Map();A.rows.forEach((r,y)=>{for(let x=0;x<r.length;x++)if(r[x]!=='.')px.set(x+','+y,A.pal[r[x]])});return HCACHE[k]=pixSvg(px,Math.round(size*.84))}
+ if(stage===3){const p=(o&&o.path)||S.asc||'light',A=ASC[cls][p][isF(g)?'f':'m'],V=curV(p,o),k='A|'+[cls,size,p,isF(g)?'f':'m',V?V.id:''].join('|');if(HCACHE[k])return HCACHE[k];const PL=V?ascvPal(A,p,V):A.pal,px=new Map();A.rows.forEach((r,y)=>{for(let x=0;x<r.length;x++)if(r[x]!=='.')px.set(x+','+y,PL[r[x]])});return HCACHE[k]=pixSvg(px,Math.round(size*.84))}
  const own=S.hero&&(cls===S.hero.cls||(S.outfit&&cls===S.outfit.cls));const e=EQ();o=Object.assign({color:own?e.color:null,acc:own?e.acc:null,weapon:own?curW(cls):WEAPONS[cls][0].id,armor:own?e.armor:null},o||{});
  const k=[cls,size,skin,stage,isF(g)?'f':'m',o.color,o.acc,o.weapon,o.armor].join('|');if(HCACHE[k])return HCACHE[k];
  return HCACHE[k]=pixSvg(heroPix(cls,skin,stage,g,o),size,null,cls==='mon'&&stage===2)}
@@ -962,9 +985,9 @@ function levelLoop(){const ups=[];while(S.level<MAX_LV&&S.xp>=need(S.level)){S.x
   const tl=TITLE_LV.find(t=>t[0]===S.level);let tt=null;if(tl&&!owns('n:'+tl[1])){S.owned.push('n:'+tl[1]);tt=tl[2]}ups.push({lv:S.level,bonus,tt});if(S.level>=MAX_LV&&S.asc&&!S.ascBoth){S.ascBoth=true;if(!owns('n:asc_b'))S.owned.push('n:asc_b')}if(S.level>=MAX_LV)markMastery()}if(S.level>=MAX_LV)S.xp=Math.min(S.xp,need(MAX_LV));return ups}
 function award(bx,bg,cat){
  let xm=1+Math.min(S.streak,10)*.03,gm=1+Math.min(S.rebirths||0,5)*.05;const C=CLASSES[S.hero.cls];
- if(C.cat&&C.cat===cat)xm+=.15;if(S.hero.cls==='bar')gm+=.15;
+ if(C.cat&&C.cat===cat)xm+=.15;if(S.hero.cls==='bar')gm+=.15;xm+=mastB();
  let xp=Math.round(bx*xm),capped=0;const gold=Math.round(bg*gm);
- const before=dayRec().xp||0;if(xp>0&&before+xp>XP_CAP){const over=before+xp-Math.max(before,XP_CAP);capped=Math.floor(over/2);xp-=capped}
+ const before=dayRec().xp||0,CAP=Math.round(XP_CAP*(1+mastB()));if(xp>0&&before+xp>CAP){const over=before+xp-Math.max(before,CAP);capped=Math.floor(over/2);xp-=capped}
  S.xp+=xp;S.totalXp+=xp;S.gold+=gold;S.stats.goldEarned+=gold;if(cat&&S.cat[cat]!=null)S.cat[cat]+=xp;
  const ups=levelLoop();
  return{xp,gold,ups,capped}}
@@ -1178,7 +1201,7 @@ const ofName=f=>f.st===3?ascName(f.cls,f.path):evoN(f.cls,f.st)+(f.armor?(f.armo
 function heroA(size,stage,o){const a=AURAS.find(x=>x.id===S.aura);let cls=S.hero.cls,st=stage??dispStage();o=o||{};const f=stage==null?curOutfit():null;
  if(f){cls=f.cls;st=f.st;o=Object.assign({path:f.path,armor:f.armor},o)}
  let inner=hero(cls,size,null,st,null,o);
- if(st===3){const p=(o&&o.path)||S.asc||'light';inner=`<span class="ascfx ${p}" style="--pc:${ASC_FX[cls][p]}">${inner}<i></i><i></i><i></i><i></i><i></i><i></i></span>`}
+ if(st===3){const p=(o&&o.path)||S.asc||'light',V=curV(p,o);inner=`<span class="ascfx ${p} ${V?'v-'+V.id:''}" style="--pc:${V?V.fx:ASC_FX[cls][p]}">${inner}<i></i><i></i><i></i><i></i><i></i><i></i></span>`}
  else if(st===2){const ar=(o&&o.armor!==undefined)?o.armor:EQ().armor;if(ar)inner=`<span class="armfx arm-${ar}">${inner}</span>`}return a?`<span class="aura ${a.id==='prism'?'prism':''}" style="--ac:${a.c}">${inner}</span>`:inner}
 function header(){const n=need(S.level),mx=S.level>=MAX_LV,pct=mx?100:Math.min(100,S.xp/n*100);
  return `<div class="topbar">${logo(30,true)}</div><div class="win hdr"><div class="row"><div class="avatar">${heroA(60)}</div><div class="grow">
@@ -1188,7 +1211,7 @@ function header(){const n=need(S.level),mx=S.level>=MAX_LV,pct=mx?100:Math.min(1
   <div class="sub" style="display:flex;justify-content:space-between;font-size:12px">${mx?'<span>NÍVEL MÁXIMO</span><span>✦</span>':`<span>EXP ${S.xp}/${n}</span><span>faltam ${n-S.xp}</span>`}</div>
   ${S.hpMode?`<div class="bar hp" style="margin-top:3px;height:9px"><i style="width:${Math.max(0,S.hp)}%"></i></div><div class="sub" style="font-size:12px">HP ${Math.max(0,S.hp)}/100</div>`:''}
  </div></div>
- <div class="chips"><span class="chip"><b>G</b> ${S.gold}</span><span class="chip">🔥 ${S.streak} dia${S.streak===1?'':'s'}${S.items.shield?` 🛡${S.items.shield}`:''}${S.streak?` <b>+${Math.min(S.streak,10)*3}%</b>`:''}</span><span class="chip">Hoje: <b>${todayXp()}</b> EXP${todayXp()>=XP_CAP?' ½':''}</span><span class="chip potchip">${potion(16,!S.potions)} ${S.potions||0} ${elixir(16,!S.elixirs)} ${S.elixirs||0}</span></div></div>`}
+ <div class="chips"><span class="chip"><b>G</b> ${S.gold}</span><span class="chip">🔥 ${S.streak} dia${S.streak===1?'':'s'}${S.items.shield?` 🛡${S.items.shield}`:''}${S.streak?` <b>+${Math.min(S.streak,10)*3}%</b>`:''}</span><span class="chip">Hoje: <b>${todayXp()}</b> EXP${todayXp()>=Math.round(XP_CAP*(1+mastB()))?' ½':''}</span><span class="chip potchip">${potion(16,!S.potions)} ${S.potions||0} ${elixir(16,!S.elixirs)} ${S.elixirs||0}</span></div></div>`}
 
 function questRow(q){const D=DIFF[q.diff],C=CATS[q.cat];const done=qDone(q),off=!qActive(q),T=qTarget(q),P=qProg(q),mk=qmon(q),sh=!!q.shiny&&!done&&!off;
  const late=!done&&q.due&&q.due<today(),dueToday=!done&&q.due===today();
@@ -1322,6 +1345,7 @@ function arsenalShop(){const c=S.hero.cls;
   <div class="tier">👑 Acessórios</div>${ACCS.map(a=>shopRow('a:'+a.id,hero(c,46,null,Math.min(dispStage(),2),null,{acc:a.id}),a.n,'',a.cost)).join('')}
   <div class="tier">⚡ Técnicas de ${clsName(c)}</div>${TECHS[c].slice(1).map(t=>shopRow('t:'+c+':'+t.id,'<span style="font-size:26px">⚡</span>',t.n,t.d,t.cost)).join('')}
   <div class="tier">🛡 Trajes lendários da forma final</div>${ARMORS.map(a=>armorOk(a)?shopRow('r:'+a.id,hero(c,46,null,2,null,{armor:a.id}),a.n,'Para '+evoN(c,2)+' · desbloqueado no nível '+a.lv,a.cost):`<div class="rw"><div class="shopic" style="filter:brightness(.35)">${hero(c,46,null,2,null,{armor:a.id})}</div><div class="grow">${a.n}<div class="sub">🔒 Disponível no nível ${a.lv}</div><div class="price">${a.cost} G</div></div><button class="btn sm" disabled>Bloqueado</button></div>`).join('')}
+  <div class="tier">✦ Variantes da Ascensão</div>${ASCV.map(v=>{const ic=hero(c,46,null,3,null,{path:v.p,ascv:v.id}),d=(v.p==='light'?'Formas da Luz':'Formas das Trevas')+' · todas as classes';return ascUnl()?shopRow('v:'+v.id,ic,v.n,d,v.cost):`<div class="rw"><div class="shopic" style="filter:brightness(.35)">${ic}</div><div class="grow">${v.n}<div class="sub">🔒 Disponível após a Ascensão (nível ${ASC_LV})</div><div class="price">${v.cost} G</div></div><button class="btn sm" disabled>Bloqueado</button></div>`}).join('')}
   <div class="tier">🏷 Títulos</div>${TITLE_SHOP.map(t=>shopRow('n:'+t.id,'<span style="font-size:24px">🏷</span>',ttHTML(t),TT_RAR[t.r],t.cost)).join('')}
   <div class="sub" style="margin-top:6px">Outros títulos são desbloqueados a cada 5 níveis e ao renascer.</div>`}
 const MENU=[
@@ -1385,10 +1409,11 @@ function viewInv(){const c=S.hero.cls,e=EQ(),O=S.owned||[];
  let body='';
  const ascOpts=S.asc&&canAsc()?(S.ascBoth?['light','dark']:[S.asc]):[];const arms=ARMORS.filter(a=>O.includes('r:'+a.id));
  const formRow=ascOpts.length?`<div class="tier" style="margin-top:0">✦ Forma exibida</div>${g(ascOpts.map(p=>invBtn('f:'+p,ascOn()&&S.asc===p,hero(c,52,null,3,null,{path:p}),ascName(c,p))).join('')+invBtn('f:classic',!ascOn(),hero(c,52,null,2),evoN(c,2)))}`:'';
+ const vRow=ascOpts.map(p=>{const vs=ASCV.filter(v=>v.p===p&&O.includes('v:'+v.id));return vs.length?`<div class="tier">✦ Variante ${p==='light'?'da Luz':'das Trevas'} <small class="mut">(${ascName(c,p)})</small></div>${g(invBtn('v:'+p,!curV(p),hero(c,52,null,3,null,{path:p,ascv:null}),'Original')+vs.map(v=>invBtn('v:'+v.id,curV(p)===v,hero(c,52,null,3,null,{path:p,ascv:v.id}),v.n.replace('Variante ',''))).join(''))}`:''}).join('');
  const armRow=arms.length?`<div class="tier">🛡 Traje lendário <small class="mut">(forma ${evoN(c,2)})</small></div>${g(invBtn('r:',!e.armor,hero(c,52,null,2,null,{armor:null}),'Padrão')+arms.map(a=>invBtn('r:'+a.id,e.armor===a.id,hero(c,52,null,2,null,{armor:a.id}),a.n)).join(''))}`:'';
  if(invTab==='ward'){const cf=curOutfit(),CL=['war','mag','mon','bar'].sort((a,b)=>(b===S.hero.cls)-(a===S.hero.cls));
   body=`<div class="sub" style="margin:0 0 8px">O figurino muda só a aparência. Arma, técnica, bônus e evolução vêm sempre da classe atual: <b style="color:var(--gold);font-weight:normal">${CLASSES[S.hero.cls].n}</b>.</div>${g(`<button class="inv ${!cf?'on':''}" data-act="outfit" data-id="auto">${hero(S.hero.cls,52,null,dispStage())}<span>Automático<br><small class="mut">forma atual</small></span></button>`)}${CL.map(k=>{const L=outfitList(k);return `<div class="tier">${CLASSES[k].n}${isMastered(k)?' <span style="color:var(--gold)">★ dominado</span>':k===S.hero.cls?' · classe atual':''}</div>${L.length?g(L.map(f=>`<button class="inv ${cf&&ofKey(cf)===ofKey(f)?'on':''}" data-act="outfit" data-id="${ofKey(f)}">${hero(f.cls,f.st===3?60:52,null,f.st,null,{path:f.path,armor:f.armor})}<span>${ofName(f)}</span></button>`).join('')):`<div class="sub" style="font-size:12px">🔒 Leve o ${CLASSES[k].n} ao nível 50 para liberar todos os figurinos dele.</div>`}`}).join('')}`}
- else if(invTab==='look')body=`${armRow}<div class="tier" ${formRow||armRow?'':'style="margin-top:0"'}>🎨 Cor da roupa</div>${g(invBtn('c:',!e.color,hero(c,52,null,Math.min(dispStage(),2),null,{color:null}),'Original')+th.map(t=>invBtn('c:'+t.id,e.color===t.id,hero(c,52,null,Math.min(dispStage(),2),null,{color:t.id}),t.n)).join(''))}
+ else if(invTab==='look')body=`${vRow}${armRow}<div class="tier" ${vRow||formRow||armRow?'':'style="margin-top:0"'}>🎨 Cor da roupa</div>${g(invBtn('c:',!e.color,hero(c,52,null,Math.min(dispStage(),2),null,{color:null}),'Original')+th.map(t=>invBtn('c:'+t.id,e.color===t.id,hero(c,52,null,Math.min(dispStage(),2),null,{color:t.id}),t.n)).join(''))}
   <div class="tier">👑 Acessório</div>${g(invBtn('a:',!e.acc,hero(c,52,null,Math.min(dispStage(),2),null,{acc:null}),'Nenhum')+ac.map(a=>invBtn('a:'+a.id,e.acc===a.id,hero(c,52,null,Math.min(dispStage(),2),null,{acc:a.id}),a.n)).join(''))}`;
  else if(invTab==='fight')body=`<div class="tier" style="margin-top:0">🗡 Arma</div>${g(ws.map(w=>invBtn('w:'+c+':'+w.id,curW()===w.id,hero(c,52,null,Math.min(dispStage(),2),null,{weapon:w.id}),w.n+(w.el?`<small class="mut" style="display:block">${w.el}</small>`:''))).join(''))}
   <div class="tier">⚡ Técnica de ataque</div>${ts.map(t=>`<button class="techrow ${curT()===t.id?'on':''}" data-act="equip" data-id="t:${c}:${t.id}"><span style="font-size:22px">⚡</span><span class="grow" style="text-align:left">${t.n}<small class="mut" style="display:block">${t.d}</small></span>${curT()===t.id?'<b class="eqd">EQUIPADA</b>':''}</button>`).join('')}`;
@@ -1425,7 +1450,7 @@ function viewHero(){const C=CLASSES[S.hero.cls];const mx=Math.max(...Object.keys
   <div class="name">${esc(S.hero.name)}${S.rebirths?` <span class="rbst">${'★'.repeat(Math.min(S.rebirths,5))}</span>`:''}</div><div class="sub">${clsName(S.hero.cls)} · ${heroTitle()} · <span class="lv px">LV ${S.level}</span></div><div class="sub" style="margin-top:4px">${C.d}</div></div>
  <div class="win"><h2>✦ Linha de evolução</h2><div class="evo">${[0,1,2,3].map(i=>{const ds=S.asc&&canAsc()?3:stageOf(S.level),on=ds>=i;return `${i?'<b>▶</b>':''}<div class="${on?'':'off'} ${dispStage()===i?'cur':''}">${on?hero(S.hero.cls,48,null,i):heroSil(S.hero.cls,48,i)}<span>${on?evoN(S.hero.cls,i):'???'}</span><i class="px">LV ${EVO_LV[i]}</i></div>`}).join('')}</div>
   <div class="mut" style="font-size:12px;margin-top:8px">${stageOf(S.level)<2?`Próxima evolução no nível ${EVO_LV[stageOf(S.level)+1]} (faltam ${EVO_LV[stageOf(S.level)+1]-S.level} níveis).`:S.asc&&canAsc()?`Forma ascendida: caminho ${S.asc==='dark'?'das Trevas':'da Luz'}.${S.ascBoth?' Troque de caminho em Itens → Visual.':' No nível 50 os dois caminhos ficam liberados.'}`:canAsc()?'A Ascensão está disponível!':`Ascensão no nível ${ASC_LV} (faltam ${ASC_LV-S.level} níveis).`}</div>${canAsc()&&!S.asc?'<button class="btn wide" style="margin-top:10px" data-act="ascopen">✦ Escolher caminho da Ascensão</button>':''}</div>
-  <div class="win"><h2>🔥 Renascimento${S.rebirths?`<span class="cnt">${S.rebirths}× · +${Math.min(S.rebirths,5)*5}% ouro</span>`:''}</h2><div class="sub">No nível 50 você pode renascer: volta ao nível 1 e escolhe continuar na classe ou começar outra. Ouro, itens, títulos e conquistas ficam com você, e as formas conquistadas vão para o Figurino. Você também ganha +5% de ouro para sempre (até +25%). Ao renascer 1, 3 e 5 vezes você ganha títulos lendários.</div>
+  <div class="win"><h2>🔥 Renascimento${S.rebirths?`<span class="cnt">${S.rebirths}× · +${Math.min(S.rebirths,5)*5}% ouro</span>`:''}</h2>${mastN()?`<div class="mastb">⚜ Bônus de Mestria: <b>+${mastN()*50}% de EXP</b> <span class="mut">(${mastN()} classe${mastN()>1?'s':''} dominada${mastN()>1?'s':''}; limite diário ${Math.round(XP_CAP*(1+mastB()))} EXP)</span></div>`:''}<div class="sub">No nível 50 você pode renascer: volta ao nível 1 e escolhe continuar na classe ou começar outra. Ouro, itens, títulos e conquistas ficam com você, e as formas conquistadas vão para o Figurino. Você também ganha +5% de ouro para sempre (até +25%), e cada classe dominada dá <b>+50% de EXP</b> nas outras classes (Bônus de Mestria). Ao renascer 1, 3 e 5 vezes você ganha títulos lendários.</div>
   ${S.level>=MAX_LV?`<button class="btn red wide" style="margin-top:10px" data-act="rebirth">Renascer</button>`:`<div class="mut" style="font-size:12px;margin-top:8px">Disponível no nível 50 (faltam ${MAX_LV-S.level} níveis).</div>`}</div>
  <div class="win"><h2>Atributos</h2>${Object.entries(CATS).map(([k,c])=>`<div class="stat"><span style="color:${c.c}">${c.a}</span><div class="bar st" style="color:${c.c}"><i style="width:${attr(k)/mx*100}%"></i></div><span class="px" style="font-size:11px;text-align:right">${attr(k)}</span></div>`).join('')}
   <div class="mut" style="font-size:12px;margin-top:6px">Força = Trabalho · Inteligência = Estudos · Vitalidade = Saúde · Carisma = Pessoal. Sobem conforme você ganha EXP em cada área.</div></div>
@@ -1549,10 +1574,10 @@ const ACT={
  fdays:id=>{F.days=id.split(',').map(Number);document.querySelectorAll('[data-act=fday]').forEach(b=>b.classList.toggle('on',F.days.includes(+b.dataset.id)));SFX.sel()},
  buyitem:id=>{if(id==='shield'){if(S.gold<150||(S.items.shield||0)>=3)return;ask('Comprar um Escudo de Sequência por 150 G?','Comprar',()=>{S.gold-=150;S.items.shield=(S.items.shield||0)+1;addLog('Comprou um Escudo de Sequência',0,-150);const got=checkAch();save();render();SFX.buy();achToasts(got)},false)}},
  buyaura:id=>{const a=AURAS.find(x=>x.id===id);if(!a||S.gold<a.cost)return;ask(`Comprar a ${a.n} por ${a.cost} G?`,'Comprar',()=>{S.gold-=a.cost;S.auras.push(id);S.aura=id;addLog('Comprou a '+a.n,0,-a.cost);const got=checkAch();save();render();SFX.shiny();achToasts(got)},false)},
- buyars:id=>{const[k,a,b]=id.split(':');let it,name;if(k==='c'){it=THEMES.find(x=>x.id===a)}else if(k==='w'){it=WEAPONS[a].find(x=>x.id===b)}else if(k==='a'){it=ACCS.find(x=>x.id===a)}else if(k==='t'){it=TECHS[a].find(x=>x.id===b)}else if(k==='n'){it=TITLE_SHOP.find(x=>x.id===a)}else if(k==='r'){it=ARMORS.find(x=>x.id===a);if(it&&!armorOk(it))return}
+ buyars:id=>{const[k,a,b]=id.split(':');let it,name;if(k==='c'){it=THEMES.find(x=>x.id===a)}else if(k==='w'){it=WEAPONS[a].find(x=>x.id===b)}else if(k==='a'){it=ACCS.find(x=>x.id===a)}else if(k==='t'){it=TECHS[a].find(x=>x.id===b)}else if(k==='n'){it=TITLE_SHOP.find(x=>x.id===a)}else if(k==='r'){it=ARMORS.find(x=>x.id===a);if(it&&!armorOk(it))return}else if(k==='v'){it=ASCV.find(x=>x.id===a);if(it&&!ascUnl())return}
   if(!it||owns(id)||S.gold<it.cost)return;ask(`Comprar <span style="color:var(--gold)">${it.n}</span> por ${it.cost} G?`,'Comprar',()=>{S.gold-=it.cost;S.owned.push(id);ACT.equip(id,null,null,true);S.stats.arsenal=(S.stats.arsenal||0)+1;addLog('Comprou: '+it.n,0,-it.cost);const got=checkAch();save();render();SFX.shiny();achToasts(got);toast(`<div class="grow">${it.n} equipad${k==='c'?'a':'o'}! Veja no 🎒 Inventário.</div>`)},false)},
  equip:(id,el,ev,quiet)=>{const[k,a,b]=id.split(':'),e=EQ();
-  if(k==='c')e.color=a||null;else if(k==='a')e.acc=a||null;else if(k==='w')e.weapon[a]=b;else if(k==='t')e.tech[a]=b;else if(k==='u')S.aura=a||null;else if(k==='n')S.title=a||null;else if(k==='r')e.armor=a||null;else if(k==='f'){if(a==='classic')S.form='classic';else{S.form='asc';if(a==='light'||a==='dark')S.asc=a}}
+  if(k==='c')e.color=a||null;else if(k==='a')e.acc=a||null;else if(k==='w')e.weapon[a]=b;else if(k==='t')e.tech[a]=b;else if(k==='u')S.aura=a||null;else if(k==='n')S.title=a||null;else if(k==='r')e.armor=a||null;else if(k==='v'){e.ascv=e.ascv||{};const V=ASCV.find(x=>x.id===a);if(V)e.ascv[V.p]=V.id;else e.ascv[a]=null}else if(k==='f'){if(a==='classic')S.form='classic';else{S.form='asc';if(a==='light'||a==='dark')S.asc=a}}
   if(!quiet){save();render();SFX.sel()}},
  aura:id=>{S.aura=S.aura===id?null:id;save();render();SFX.sel()},
  hpmode:()=>{if(S.hpMode){S.hpMode=false;save();render();return}ask('Ligar o Modo desafio?<br><span class="mut" style="font-size:14px">A cada dia, as diárias não feitas tiram HP (5 a 15 conforme a dificuldade). Missões, poções e subir de nível curam. Se o HP zerar, você desmaia e perde 10% do ouro.</span>','Ligar',()=>{S.hpMode=true;S.hp=100;S.hpCheck=today();save();render()},false)},
@@ -1574,7 +1599,7 @@ const ACT={
   modal(`<h2>🔥 Renascimento</h2><div class="sub" style="margin-bottom:10px">Você volta ao nível 1 e ganha +5% de ouro para sempre. Escolha a classe da nova jornada. Ouro, títulos, conquistas, acessórios, auras e trajes continuam com você, e o ${CLASSES[cur].n} fica dominado no Guarda-roupa.</div>
    <div class="rbpick">${Object.keys(CLASSES).map(k=>`<button class="rbcard ${k===cur?'cur':''}" data-act="rbpick" data-id="${k}">${hero(k,60,null,isMastered(k)||k===cur?(k===cur&&S.asc?3:2):0,null,{path:k===cur?S.asc:(S.mastered[k]&&S.mastered[k].asc)||'light'})}<b>${CLASSES[k].n}</b><small>${k===cur?'continuar':isMastered(k)?'★ já dominado':'nova classe'}</small><small class="mut">${CLASSES[k].d}</small></button>`).join('')}</div>
    <div class="actions"><button class="btn ghost" data-act="close">Cancelar</button></div>`)},
- rbpick:id=>{const cur=S.hero.cls;ask(`${id===cur?`Renascer como ${CLASSES[id].n}?`:`Renascer como ${CLASSES[id].n}?`}<br><span class="mut" style="font-size:14px">${id===cur?'Você recomeça a mesma classe do nível 1.':'Uma nova jornada começa no nível 1, com o bônus da nova classe. Seus figurinos do '+CLASSES[cur].n+' ficam no Guarda-roupa.'}</span>`,'Renascer',()=>{
+ rbpick:id=>{const cur=S.hero.cls;ask(`${id===cur?`Renascer como ${CLASSES[id].n}?`:`Renascer como ${CLASSES[id].n}?`}<br><span class="mut" style="font-size:14px">${id===cur?'Você recomeça a mesma classe do nível 1.':'Uma nova jornada começa no nível 1, com o bônus da nova classe e o <b>Bônus de Mestria: +'+(Object.keys(Object.assign({},S.mastered,{[cur]:1})).filter(c=>c!==id).length*50)+'% de EXP</b>. Seus figurinos do '+CLASSES[cur].n+' ficam no Guarda-roupa.'}</span>`,'Renascer',()=>{
   markMastery();S.mastered[cur]={asc:S.asc||null};S.rebirths=(S.rebirths||0)+1;S.level=1;S.xp=0;
   if(id!==cur){S.hero.cls=id;const m=S.mastered[id];S.asc=m?m.asc:null;S.ascBoth=!!m;S.form='asc';S.stats.classes=(S.stats.classes||0)+1}
   TITLE_RB.forEach(([k,i2])=>{if(S.rebirths>=k&&!owns('n:'+i2))S.owned.push('n:'+i2)});addLog(`🔥 Renasceu como ${CLASSES[id].n} (${S.rebirths}ª vez)`,0,0);const got=checkAch();save();tab='hero';render();SFX.lvl();achToasts(got);
@@ -1599,7 +1624,7 @@ const TUT=[
  {ic:()=>'<span style="font-size:52px">▤</span>',who:'Rei',t:'Status',d:'Veja o <b>relatório da semana</b>, a evolução do seu EXP por área e o <b>diário</b> do que você fez. Ótimo para revisar a semana no domingo.'},
  {ic:()=>svg(KEEPER.rows,KEEPER.pal,64),who:'Taverneiro',t:'Loja',d:'Na Taverna você gasta ouro com o <b>Cardápio</b> de recompensas reais (toque em <b>+ Sugestões do Taverneiro</b>), itens úteis como o <b>Escudo de Sequência</b>, e o <b>Arsenal</b>: cores, armas, acessórios, técnicas, auras, <b>títulos</b> e os <b>trajes lendários</b>.'},
  {ic:()=>hero(S.hero.cls,72),who:'Taverneiro',t:'Itens',d:'Tudo o que você compra fica na aba <b>Itens</b>: <b>Visual</b> (cor, acessório e traje), <b>Combate</b> (arma e técnica), <b>Aura</b>, <b>Título</b>, <b>Figurino</b> e consumíveis. Equipar é só tocar.'},
- {ic:()=>`<div class="row" style="justify-content:center;gap:2px;align-items:flex-end">${[0,1,2].map(i=>hero(S.hero.cls,40,null,i)).join('')}${hero(S.hero.cls,48,null,3,null,{path:'light'})}</div>`,who:'Rei',t:'A jornada do herói',d:'Você <b>evolui nos níveis 10 e 20</b>. No 30 e no 35 liberam os <b>trajes Dourado e Platinado</b>. No <b>40, a Ascensão</b>: escolha Luz ou Trevas. O <b>50</b> é o máximo: os dois caminhos ficam livres e você pode <b>renascer</b>, inclusive em outra classe, levando as formas conquistadas para o <b>Figurino</b>.'},
+ {ic:()=>`<div class="row" style="justify-content:center;gap:2px;align-items:flex-end">${[0,1,2].map(i=>hero(S.hero.cls,40,null,i)).join('')}${hero(S.hero.cls,48,null,3,null,{path:'light'})}</div>`,who:'Rei',t:'A jornada do herói',d:'Você <b>evolui nos níveis 10 e 20</b>. No 30 e no 35 liberam os <b>trajes Dourado e Platinado</b>. No <b>40, a Ascensão</b>: escolha Luz ou Trevas, e a Taverna passa a vender <b>variantes de cor</b> para as formas ascendidas. O <b>50</b> é o máximo: os dois caminhos ficam livres e você pode <b>renascer</b>, inclusive em outra classe, levando as formas conquistadas para o <b>Figurino</b>. Cada classe dominada dá <b>+50% de EXP</b> nas próximas (Bônus de Mestria).'},
  {ic:()=>`<div class="row" style="justify-content:center;gap:6px">${mon('saci',52)}${mon('abobora',52)}</div>`,who:'Rei',t:'Bestiário e eventos',d:'Cada monstro derrotado entra no <b>bestiário</b> (aba Herói), inclusive os do <b>folclore brasileiro</b>. No Carnaval, na Páscoa, na Festa Junina, no Halloween e no Natal surgem <b>monstros de evento</b> só naquela semana. Há 1 chance em 12 de aparecer uma versão <span class="shn">✦ especial</span>, com recompensa em dobro.'},
  {ic:()=>'<span style="font-size:52px">⚙</span>',who:'Rei',t:'Configurações',d:'Na aba Herói você ajusta <b>tema</b> (Normal, Claro, Escuro), <b>layout</b> (Clássico ou Moderno), <b>orientação da tela</b>, <b>dificuldade</b>, sons e o <b>Modo desafio</b> com HP. Faça <b>backup do save</b> de vez em quando: ele leva seu progresso para outro aparelho.'},
  {ic:()=>heroA(80),who:'Rei',t:'Boa jornada!',d:'Agora é com você, herói. Pode rever este tutorial quando quiser em <b>Configurações › Tutorial</b>.'}];
