@@ -198,6 +198,9 @@ select.in{appearance:none;-webkit-appearance:none}
 .zzz{position:absolute;left:calc(50% - 30px);top:6px;color:#bfe6ff;font-size:12px;animation:zz 2.4s ease-in-out infinite}
 .zzz span{display:inline-block;margin-left:4px;transform:translateY(-8px);font-size:14px}.zzz span+span{transform:translateY(-18px);font-size:17px}
 @keyframes zz{0%{opacity:0;transform:translateY(10px)}30%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+.frozen{filter:grayscale(1) brightness(.75)}
+.paused{text-align:center;color:#8ac0ff;font-size:12px;margin-top:10px}
+.blinkt{animation:blink 1s steps(2) infinite}
 .focusfoe{display:grid;place-items:center;height:150px}
 /* tavern */
 .rw{display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:2px dashed #ffffff22}
@@ -741,14 +744,15 @@ function potionBox(){const n=S.potions||0,e=S.elixirs||0,b=S.focusBank||0,cyc=S.
   <div class="bar st" style="color:${nextE?'#38e8c8':'#ff4a6a'}"><i style="width:${b/POT_EVERY*100}%"></i></div>
   <div class="cycle"><span class="sub">Ciclo Pomodoro</span>${[0,1,2,3].map(i=>i<3?`<i class="${i<cyc?'on':''}">${potion(18,i>=cyc)}</i>`:`<i class="${nextE?'next':''}">${elixir(18,true)}</i>`).join('<b>›</b>')}</div>
   <div class="mut" style="font-size:12px;margin-top:6px">A cada ${POT_EVERY} min de foco você ganha um descanso. Como no Pomodoro clássico, o 4º descanso do ciclo é um Elixir de ${ELX_REST} min.</div></div>`}
+const fNow=f=>f.pausedAt||Date.now();
 function viewFocus(){let h=header();const f=S.focus;
- if(f){const F0=FOCUS.find(x=>x.min===f.min)||{m:'skull',n:'Monstro'};const left=Math.max(0,f.endAt-Date.now());const pct=left/(f.min*60000)*100;
-  h+=`<div class="win"><h2>⧗ Batalha de foco</h2><div class="focusfoe"><div class="foe" style="animation:bob 1.2s ease-in-out infinite">${mon(F0.m,120,f.shiny)}</div></div>
+ if(f){const F0=FOCUS.find(x=>x.min===f.min)||{m:'skull',n:'Monstro'};const left=Math.max(0,f.endAt-fNow(f));const pct=left/(f.min*60000)*100,P=!!f.pausedAt;
+  h+=`<div class="win"><h2>⧗ Batalha de foco</h2><div class="focusfoe"><div class="foe ${P?'frozen':''}" style="${P?'':'animation:bob 1.2s ease-in-out infinite'}">${mon(F0.m,120,f.shiny)}</div></div>
    <div style="text-align:center">${f.shiny?'<span class="shn">✦ ESPECIAL ✦</span> ':''}${F0.n}</div><div class="bar hp"><i id="fhp" style="width:${pct}%"></i></div>
-   <div class="timer px" id="ftime">${z(Math.floor(left/60000))}:${z(Math.floor(left/1000)%60)}</div>
-   <div class="tb mut" style="text-align:center;font-size:14px">Concentre-se em <span style="color:${CATS[f.cat].c}">${CATS[f.cat].n}</span>. Cada segundo de foco é um golpe no monstro. Pode bloquear a tela — o tempo continua contando.</div>
+   ${P?'<div class="paused px">- PAUSADO -</div>':''}<div class="timer px ${P?'blinkt':''}" id="ftime">${z(Math.floor(left/60000))}:${z(Math.floor(left/1000)%60)}</div>
+   <div class="tb mut" style="text-align:center;font-size:14px">Concentre-se em <span style="color:${CATS[f.cat].c}">${CATS[f.cat].n}</span>. ${P?'A batalha está congelada: o tempo pausado não conta como foco. Toque em Continuar quando voltar.':'Cada segundo de foco é um golpe no monstro. Pode bloquear a tela — o tempo continua contando.'}</div>
    <div class="row" style="margin-top:10px;font-size:13px">${potion(26)}<div class="grow mut">${(()=>{const r=calcRests(f.min,false);return (r.p||r.e)?`Vencer esta batalha rende ${restTxt(r)}.`:`Progresso da próxima poção ao vencer: ${(S.focusBank||0)+f.min}/${POT_EVERY} min.`})()}</div></div>
-   <button class="btn red wide" style="margin-top:12px" data-act="flee">Fugir da batalha</button></div>`}
+   <div class="actions"><button class="btn ${P?'':'blue'}" data-act="${P?'fresume':'fpause'}">${P?'▶ Continuar':'II Pausar'}</button><button class="btn red" data-act="flee">Fugir</button></div></div>`}
  else if(S.rest){const r=S.rest,left=Math.max(0,r.endAt-Date.now());
   h+=`<div class="win"><h2>🧪 ${r.kind==='e'?'Pausa longa (Elixir)':'Descanso'}</h2><div class="restscene"><div class="zzz px">z<span>z</span><span>Z</span></div>${hero(S.hero.cls,110)}<div class="fire">${r.kind==='e'?elixir(44):potion(44)}</div></div>
    <div style="text-align:center">HP / MP se recuperando...</div><div class="bar"><i id="rhp" style="width:${100-left/(r.min*60000)*100}%"></i></div>
@@ -843,7 +847,9 @@ const ACT={
  fmin:id=>{fMin=+id;SFX.sel();render()},
  fcat:id=>{fCat=id;SFX.sel();render()},
  fstart:()=>{if(S.rest)return;S.focus={start:Date.now(),endAt:Date.now()+fMin*60000,min:fMin,cat:fCat,shiny:Math.random()<SHINY_RATE};SFX.hit();save();render()},
- flee:()=>{const el=Math.floor((Date.now()-S.focus.start)/60000);ask(`Fugir da batalha? O monstro escapa e você não ganha EXP.${el?`<br><span class="mut" style="font-size:14px">Os ${el} min que você já focou ainda contam para a próxima poção.</span>`:''}`,'Fugir',()=>{const e=Math.min(S.focus.min,Math.floor((Date.now()-S.focus.start)/60000));S.focus=null;const n=addFocusTime(e);addLog(`Fugiu de uma batalha de foco (${e} min contados)`,0,0);save();render();if(n.p||n.e)toast(`${n.e?elixir(28):potion(28)}<div class="grow">Você obteve ${restTxt(n)}!</div>`)})},
+ fpause:()=>{if(!S.focus||S.focus.pausedAt)return;S.focus.pausedAt=Date.now();S.focus.pauses=(S.focus.pauses||0)+1;SFX.sel();save();render()},
+ fresume:()=>{const f=S.focus;if(!f||!f.pausedAt)return;const d=Date.now()-f.pausedAt;f.start+=d;f.endAt+=d;delete f.pausedAt;SFX.hit();save();render()},
+ flee:()=>{const el=Math.floor((fNow(S.focus)-S.focus.start)/60000);ask(`Fugir da batalha? O monstro escapa e você não ganha EXP.${el?`<br><span class="mut" style="font-size:14px">Os ${el} min que você já focou ainda contam para a próxima poção.</span>`:''}`,'Fugir',()=>{const e=Math.min(S.focus.min,Math.floor((fNow(S.focus)-S.focus.start)/60000));S.focus=null;const n=addFocusTime(e);addLog(`Fugiu de uma batalha de foco (${e} min contados)`,0,0);save();render();if(n.p||n.e)toast(`${n.e?elixir(28):potion(28)}<div class="grow">Você obteve ${restTxt(n)}!</div>`)})},
  drink:id=>{if(S.focus||S.rest)return;const el=id==='e';if(el?!(S.elixirs>0):!(S.potions>0))return;if(el){S.elixirs--;S.stats.elxUsed++}else{S.potions--;S.stats.potUsed++}const m=el?ELX_REST:POT_REST;S.rest={start:Date.now(),endAt:Date.now()+m*60000,min:m,kind:el?'e':'p'};addLog(el?'Bebeu um Elixir (pausa longa)':'Bebeu uma Poção de Descanso',0,0);const got=checkAch();el?SFX.elixir():SFX.drink();save();render();achToasts(got)},
  restend:()=>ask('Encerrar o descanso agora? O tempo restante será perdido.','Encerrar',()=>{S.rest=null;save();render()},false),
  rwedit:()=>{editRw=!editRw;render()},
@@ -892,7 +898,7 @@ function finishRest(){notify('Descanso concluído!','HP e MP restaurados. Hora d
 setInterval(()=>{
  if(S.rest){const left=S.rest.endAt-Date.now();if(left<=0)finishRest();
   else if(tab==='focus'){const t=$('#rtime'),hp=$('#rhp');if(t)t.textContent=z(Math.floor(left/60000))+':'+z(Math.floor(left/1000)%60);if(hp)hp.style.width=(100-left/(S.rest.min*60000)*100)+'%'}}
- if(S.focus){const left=S.focus.endAt-Date.now();if(left<=0)finishFocus();
+ if(S.focus&&!S.focus.pausedAt){const left=S.focus.endAt-Date.now();if(left<=0)finishFocus();
   else if(tab==='focus'){const t=$('#ftime'),hp=$('#fhp');if(t)t.textContent=z(Math.floor(left/60000))+':'+z(Math.floor(left/1000)%60);if(hp)hp.style.width=(left/(S.focus.min*60000)*100)+'%'}}
  if(today()!==lastDay){lastDay=today();checkStreak();if(!$('#modal').classList.contains('show'))render()}
 },1000);
