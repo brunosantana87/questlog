@@ -1,5 +1,5 @@
 // Quest Log — service worker (funciona offline)
-const CACHE='questlog-v8';
+const CACHE='questlog-v14';
 const FILES=['./','index.html','manifest.webmanifest','dotgothic16.woff2','dotgothic16-ext.woff2','pressstart2p.woff2',
  'icon-192.png','icon-512.png','maskable-512.png','badge-96.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
