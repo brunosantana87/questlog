@@ -470,7 +470,7 @@ body.lay-modern .ttb{border-width:1px;border-radius:999px}
 .pick button:disabled{opacity:.35}
 .invhero{position:sticky;top:6px;z-index:6}
 .ihspr{width:104px;height:110px;display:grid;place-items:center;flex-shrink:0;border-radius:10px;background:radial-gradient(circle at 50% 40%,var(--p3),var(--p1));border:2px solid var(--b3)}
-.invtabs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:0 0 12px}
+.invtabs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:0 0 12px}
 .invtabs button{background:var(--p1);border:2px solid var(--b3);border-radius:10px;padding:6px 2px;color:var(--mut);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .invtabs button span{font-size:18px;line-height:1}
 .invtabs button small{font-size:10px;opacity:.75}
@@ -531,6 +531,11 @@ body.lay-modern .ihspr{border:0;border-radius:18px;box-shadow:0 0 0 2px var(--go
 .kr{animation:kpulse 1.6s ease-in-out infinite}
 @keyframes kbob{50%{transform:translateY(-1.4px)}}
 @keyframes kpulse{50%{opacity:.55}}
+
+.rbpick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rbcard{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:10px;border:2px solid var(--b3);background:var(--p1);color:var(--txt);text-align:center}
+.rbcard.cur{border-color:var(--gold)}.rbcard b{font-weight:normal;color:var(--gold)}.rbcard small{font-size:11px;line-height:1.25}
+.invtabs button{font-size:10px}
 </style>
 </head>
 <body>
@@ -622,9 +627,10 @@ const XP_CAP=600;
 const TT_RAR={c:'Comum',r:'Raro',e:'Épico',l:'Lendário'};
 const TITLE_LV=[[5,'lv5','Caçador de Slimes','r'],[10,'lv10','Portador da Chama','r'],[15,'lv15','Guardião do Gabinete','r'],[20,'lv20','Lâmina da Justiça','e'],[25,'lv25','Sábio das Pautas','e'],[30,'lv30','Senhor dos Prazos','e'],[35,'lv35','Arauto da Aurora','e'],[40,'lv40','Lenda do Tribunal','l'],[45,'lv45','Escolhido das Estrelas','l'],[50,'lv50','Soberano do Reino','l']];
 const TITLE_ASC=[['asc_l','Escolhido da Luz','l'],['asc_d','Arauto das Trevas','l'],['asc_b','Equilíbrio Eterno','l']];
+const TITLE_MS=[[2,'ms2','Mestre de Duas Artes','l'],[3,'ms3','Mestre de Três Artes','l'],[4,'ms4','Mestre de Todas as Artes','l']];
 const TITLE_RB=[[1,'rb1','Renascido','l'],[3,'rb3','Fênix Imortal','l'],[5,'rb5','O Eterno','l']];
 const TITLE_SHOP=[{id:'s_cafe',n:'Movido a Café',cost:250,r:'c'},{id:'s_inc',n:'O Incansável',cost:300,r:'c'},{id:'s_mad',n:'Sentinela da Madrugada',cost:400,r:'r'},{id:'s_min',n:'Bardo das Minutas',cost:400,r:'r'},{id:'s_proc',n:'Devorador de Processos',cost:500,r:'r'},{id:'s_desp',n:'Cavaleiro do Despacho',cost:600,r:'e'},{id:'s_praz',n:'Domador de Prazos',cost:800,r:'e'},{id:'s_foco',n:'Senhor do Foco',cost:900,r:'e'},{id:'s_lend',n:'O Lendário',cost:1500,r:'l'},{id:'s_imp',n:'Imperador da Produtividade',cost:2500,r:'l'},{id:'s_ceu',n:'Guardião dos Céus',cost:3500,r:'l'},{id:'s_abis',n:'Senhor do Abismo',cost:3500,r:'l'},{id:'s_mito',n:'Mito do Tribunal',cost:5000,r:'l'}];
-const allTitles=()=>[...TITLE_LV.map(([lv,id,n,r])=>({id,n,r,lv})),...TITLE_RB.map(([rb,id,n,r])=>({id,n,r,rb})),...TITLE_ASC.map(([id,n,r])=>({id,n,r})),...TITLE_SHOP];
+const allTitles=()=>[...TITLE_LV.map(([lv,id,n,r])=>({id,n,r,lv})),...TITLE_RB.map(([rb,id,n,r])=>({id,n,r,rb})),...TITLE_ASC.map(([id,n,r])=>({id,n,r})),...TITLE_MS.map(([k,id,n,r])=>({id,n,r})),...TITLE_SHOP];
 const titleById=id=>allTitles().find(t=>t.id===id);
 const ttHTML=t=>`<span class="tt tt-${t.r}">«${t.n}»</span>`;
 const heroTitle=()=>{const t=S.title&&(S.owned||[]).includes('n:'+S.title)&&titleById(S.title);return t?ttHTML(t):title(S.level)};
@@ -632,7 +638,7 @@ const ACH_G={first:50,f1:50,pot:50,buy:50,st3:50,lv5:50,weekly1:50,shiny1:50,aur
  q10:150,weekly10:150,big:150,tick100:150,lv10:150,st7:150,f10:150,pot20:150,best10:150,shiny5:150,buy10:150,ars10:150,g1k:150,reb1:300,
  q50:300,q200:300,tick500:300,perfect10:300,boss10:300,lv20:300,st14:300,f50:300,f600:300,daily100:300,wboss10:300,for10:300,int10:300,vit10:300,car10:300,g10k:300,
  q500:500,q1000:500,boss50:500,lv30:500,st30:500,st100:500,f3000:500,bestall:500,shinyall:500};
-Object.assign(ACH_G,{folk:500,ev_carn:300,ev_easter:300,ev_jun:300,ev_hallo:300,ev_xmas:300,lv40:500,lv50:1000,asc1:300,ascb:500,arm1:300,arm2:300,q2000:1000,st365:1000,f6000:500,g50k:500,reb3:500});
+Object.assign(ACH_G,{mst_war:500,mst_mag:500,mst_mon:500,mst_bar:500,mst_all:2000,folk:500,ev_carn:300,ev_easter:300,ev_jun:300,ev_hallo:300,ev_xmas:300,lv40:500,lv50:1000,asc1:300,ascb:500,arm1:300,arm2:300,q2000:1000,st365:1000,f6000:500,g50k:500,reb3:500});
 const achGold=id=>ACH_G[id]||150;
 
 /* ===================== sprites em pixel art ===================== */
@@ -645,7 +651,7 @@ const ASC_D={war:{light:'Asas de penas, escudo-torre e lança sagrada.',dark:'As
 const ASC_FX={war:{light:'#fff4c0',dark:'#ff3a1a'},mag:{light:'#fff4c0',dark:'#5aff8a'},mon:{light:'#ffd447',dark:'#ff5a1a'},bar:{light:'#c8f0ff',dark:'#ff5a1a'}};
 const ASC_LV=40,MAX_LV=50;
 const ascName=(c,p,g)=>ASC_N[c][p||'light'][isF(g)?1:0];
-const canAsc=()=>S.level>=ASC_LV||(S.rebirths||0)>0;
+const canAsc=()=>S.level>=ASC_LV||isMastered();
 const ascOn=()=>!!S.asc&&canAsc()&&S.form!=='classic';
 const dispStage=()=>ascOn()?3:stageOf(S.level);
 const ARMORS=[
@@ -663,7 +669,8 @@ const armorOk=a=>S.level>=a.lv||(S.rebirths||0)>0;
 const SKINS=[["#ffe3cc","#e9b59a","#fff3e8"],["#f7c9a0","#d89a70","#ffe0c4"],["#e2a77a","#b97b52","#f2c49c"],["#b97a4c","#8a5333","#d49a6a"],["#8c5734","#61391f","#a8724a"],["#5e3a24","#3d2414","#7a5038"]];
 const EVO_LV=[1,10,20,40];
 const EVO={war:["Guerreiro","Cavaleiro","Paladino"],mag:["Mago","Feiticeiro","Arquimago"],mon:["Monge","Mestre Ki","Grão-Mestre"],bar:["Bardo","Menestrel","Maestro Lendário"]};
-const stageOf=L=>S&&S.rebirths?2:L>=20?2:L>=10?1:0;
+const isMastered=c=>!!(S&&S.mastered&&S.mastered[c||(S.hero&&S.hero.cls)]);
+const stageOf=L=>S&&S.hero&&isMastered()?2:L>=20?2:L>=10?1:0;
 
 const EVO_F={war:["Guerreira","Cavaleira","Paladina"],mag:["Maga","Feiticeira","Arquimaga"],mon:["Monja","Mestra Ki","Grã-Mestra"],bar:["Barda","Menestrel","Maestrina Lendária"]};
 const isF=g=>(g??(S.hero&&S.hero.gender))==='f';
@@ -711,7 +718,7 @@ function pixSvg(px,size,sil,split){let x0=0,y0=0,x1=23,y1=31;px.forEach((c,k)=>{
  const w=x1-x0+1,h=y1-y0+1,sc=size/32;return `<svg class="spr" viewBox="${x0} ${y0} ${w} ${h}" width="${Math.round(w*sc)}" height="${Math.round(h*sc)}" shape-rendering="crispEdges">${r}</svg>`}
 function hero(cls,size,skin,stage,g,o){if(skin==null)skin=(S.hero&&S.hero.skin!=null)?S.hero.skin:1;if(stage==null)stage=S.hero?dispStage():0;
  if(stage===3){const p=(o&&o.path)||S.asc||'light',A=ASC[cls][p][isF(g)?'f':'m'],k='A|'+[cls,size,p,isF(g)?'f':'m'].join('|');if(HCACHE[k])return HCACHE[k];const px=new Map();A.rows.forEach((r,y)=>{for(let x=0;x<r.length;x++)if(r[x]!=='.')px.set(x+','+y,A.pal[r[x]])});return HCACHE[k]=pixSvg(px,Math.round(size*.84))}
- const own=S.hero&&cls===S.hero.cls;const e=EQ();o=Object.assign({color:own?e.color:null,acc:own?e.acc:null,weapon:own?curW(cls):WEAPONS[cls][0].id,armor:own?e.armor:null},o||{});
+ const own=S.hero&&(cls===S.hero.cls||(S.outfit&&cls===S.outfit.cls));const e=EQ();o=Object.assign({color:own?e.color:null,acc:own?e.acc:null,weapon:own?curW(cls):WEAPONS[cls][0].id,armor:own?e.armor:null},o||{});
  const k=[cls,size,skin,stage,isF(g)?'f':'m',o.color,o.acc,o.weapon,o.armor].join('|');if(HCACHE[k])return HCACHE[k];
  return HCACHE[k]=pixSvg(heroPix(cls,skin,stage,g,o),size,null,cls==='mon'&&stage===2)}
 function heroSil(cls,size,stage){if(stage===3){const A=ASC[cls].light[isF()?'f':'m'],px=new Map();A.rows.forEach((r,y)=>{for(let x=0;x<r.length;x++)if(r[x]!=='.')px.set(x+','+y,'#000')});return pixSvg(px,Math.round(size*.84),'#2c3478')}return pixSvg(heroPix(cls,1,stage,null,{weapon:WEAPONS[cls][0].id}),size,'#2c3478')}
@@ -794,7 +801,7 @@ const qActive=(q,wd)=>q.type!=='daily'||!q.days||!q.days.length||q.days.includes
 const daysTxt=q=>{if(!q.days||q.days.length===7||!q.days.length)return'';const k=q.days.slice().sort().join();if(k==='1,2,3,4,5')return'seg–sex';if(k==='0,6')return'fins de semana';return q.days.slice().sort().map(i=>WDN[i]).join(', ')};
 const IS_PWA=!!document.querySelector('link[rel=manifest]');
 function migrate(s){const f=fresh();if(!s||typeof s!=='object')return f;const o=Object.assign(f,s);
- o.cat=Object.assign(fresh().cat,s.cat||{});o.stats=Object.assign(fresh().stats,s.stats||{});o.potions=o.potions||0;o.elixirs=o.elixirs||0;o.potCycle=o.potCycle||0;o.focusBank=o.focusBank||0;o.ach=o.ach||{};o.bestiary=o.bestiary||{};o.shinyDex=o.shinyDex||{};o.log=o.log||[];o.quests=o.quests||[];o.rewards=o.rewards||[];o.days=o.days||{};o.items=Object.assign({shield:0},o.items||{});o.quests.forEach(q=>{if(q.type==='daily'&&q.diff==='b')q.diff='h'});o.auras=o.auras||[];o.owned=o.owned||[];o.eq=Object.assign({color:null,acc:null,weapon:{},tech:{}},o.eq||{});if(o.hp==null)o.hp=100;if(s.hero&&s.tutDone===undefined)o.tutDone=true;return o}
+ o.cat=Object.assign(fresh().cat,s.cat||{});o.stats=Object.assign(fresh().stats,s.stats||{});o.potions=o.potions||0;o.elixirs=o.elixirs||0;o.potCycle=o.potCycle||0;o.focusBank=o.focusBank||0;o.ach=o.ach||{};o.bestiary=o.bestiary||{};o.shinyDex=o.shinyDex||{};o.log=o.log||[];o.quests=o.quests||[];o.rewards=o.rewards||[];o.days=o.days||{};o.items=Object.assign({shield:0},o.items||{});o.quests.forEach(q=>{if(q.type==='daily'&&q.diff==='b')q.diff='h'});o.mastered=o.mastered||{};if(o.hero&&((o.rebirths||0)>0||o.level>=50)&&!o.mastered[o.hero.cls])o.mastered[o.hero.cls]={asc:o.asc||null};o.auras=o.auras||[];o.owned=o.owned||[];o.eq=Object.assign({color:null,acc:null,weapon:{},tech:{}},o.eq||{});if(o.hp==null)o.hp=100;if(s.hero&&s.tutDone===undefined)o.tutDone=true;return o}
 let S;try{S=migrate(JSON.parse(localStorage.getItem(KEY)))}catch(e){S=fresh()}
 function checkStreak(){
  if(S.lastActive&&S.lastActive<yesterday()&&S.streak){const missed=dayDiff(S.lastActive,today())-1;
@@ -934,6 +941,11 @@ const ACH=[
  ['f6000','Foco Eterno','100 h de foco',s=>s.stats.focusMin>=6000],
  ['g50k','Tesouro Ancestral','Ganhe 50000 G no total',s=>s.stats.goldEarned>=50000],
  ['reb3','Fênix Imortal','Renasça 3 vezes',s=>(s.rebirths||0)>=3],
+ ['mst_war','Domínio do Guerreiro','Leve o Guerreiro ao nível 50',s=>!!(s.mastered&&s.mastered.war)],
+ ['mst_mag','Domínio do Mago','Leve o Mago ao nível 50',s=>!!(s.mastered&&s.mastered.mag)],
+ ['mst_mon','Domínio do Monge','Leve o Monge ao nível 50',s=>!!(s.mastered&&s.mastered.mon)],
+ ['mst_bar','Domínio do Bardo','Leve o Bardo ao nível 50',s=>!!(s.mastered&&s.mastered.bar)],
+ ['mst_all','Mestre Supremo','Domine as 4 classes',s=>Object.keys(s.mastered||{}).length>=4],
  ['folk','Lendas do Brasil','Derrote todos os monstros do folclore',s=>FOLK.every(k=>s.bestiary&&s.bestiary[k])],
  ...EVENTS.map(ev=>['ev_'+ev.id,ev.ach,`Derrote os 3 monstros de ${ev.n}`,s=>Object.values(ev.mons).every(k=>s.bestiary&&s.bestiary[k])])];
 function checkDay(){const h=new Date().getHours();if(h<7)S.stats.early++;if(h>=23)S.stats.late++;
@@ -944,8 +956,10 @@ function checkAch(){const got=[];for(let i=0;i<3;i++)ACH.forEach(a=>{if(!S.ach[a
 /* ===================== mecânicas ===================== */
 function addLog(txt,xp,g,c){S.log.unshift({t:Date.now(),txt,xp,g,c});if(xp>0){const r=dayRec();r.xp+=xp;if(c)r.c[c]=(r.c[c]||0)+xp}if(S.log.length>80)S.log.length=80}
 function touchStreak(){const t=today();if(S.lastActive===t)return;S.streak=S.lastActive===yesterday()?S.streak+1:1;S.lastActive=t;S.best=Math.max(S.best,S.streak)}
+function markMastery(){S.mastered=S.mastered||{};const c=S.hero.cls;S.mastered[c]={asc:S.asc||(S.mastered[c]&&S.mastered[c].asc)||null};
+ const n=Object.keys(S.mastered).length;TITLE_MS.forEach(([k,id])=>{if(n>=k&&!owns('n:'+id))S.owned.push('n:'+id)})}
 function levelLoop(){const ups=[];while(S.level<MAX_LV&&S.xp>=need(S.level)){S.xp-=need(S.level);S.level++;if(S.hpMode)S.hp=100;const bonus=S.level*10;S.gold+=bonus;
-  const tl=TITLE_LV.find(t=>t[0]===S.level);let tt=null;if(tl&&!owns('n:'+tl[1])){S.owned.push('n:'+tl[1]);tt=tl[2]}ups.push({lv:S.level,bonus,tt});if(S.level>=MAX_LV&&S.asc&&!S.ascBoth){S.ascBoth=true;if(!owns('n:asc_b'))S.owned.push('n:asc_b')}}if(S.level>=MAX_LV)S.xp=Math.min(S.xp,need(MAX_LV));return ups}
+  const tl=TITLE_LV.find(t=>t[0]===S.level);let tt=null;if(tl&&!owns('n:'+tl[1])){S.owned.push('n:'+tl[1]);tt=tl[2]}ups.push({lv:S.level,bonus,tt});if(S.level>=MAX_LV&&S.asc&&!S.ascBoth){S.ascBoth=true;if(!owns('n:asc_b'))S.owned.push('n:asc_b')}if(S.level>=MAX_LV)markMastery()}if(S.level>=MAX_LV)S.xp=Math.min(S.xp,need(MAX_LV));return ups}
 function award(bx,bg,cat){
  let xm=1+Math.min(S.streak,10)*.03,gm=1+Math.min(S.rebirths||0,5)*.05;const C=CLASSES[S.hero.cls];
  if(C.cat&&C.cat===cat)xm+=.15;if(S.hero.cls==='bar')gm+=.15;
@@ -1152,8 +1166,19 @@ function notices(){let h='';const now=Date.now();
    <div class="actions" style="margin-top:8px"><button class="btn ghost sm" data-act="bksnooze">Depois</button><button class="btn sm" data-act="backup">Fazer backup</button></div></div>`}
  return h}
 const AURAS=[{id:'gold',n:'Aura Dourada',cost:300,c:'#ffd447'},{id:'arc',n:'Aura Arcana',cost:300,c:'#b07aff'},{id:'fire',n:'Aura Flamejante',cost:400,c:'#ff6a3a'},{id:'ice',n:'Aura Glacial',cost:400,c:'#7ae0ff'},{id:'prism',n:'Aura Prismática',cost:1000,c:'#ff5af0'}];
-function heroA(size,stage,o){const a=AURAS.find(x=>x.id===S.aura);let inner=hero(S.hero.cls,size,null,stage,null,o);const st=stage??dispStage();
- if(st===3){const p=(o&&o.path)||S.asc||'light';inner=`<span class="ascfx ${p}" style="--pc:${ASC_FX[S.hero.cls][p]}">${inner}<i></i><i></i><i></i><i></i><i></i><i></i></span>`}
+function outfitList(c){const L=[],cur=c===S.hero.cls,m=isMastered(c);const maxSt=m?2:cur?stageOf(S.level):-1;
+ for(let st=0;st<=maxSt;st++)L.push({cls:c,st,path:null,armor:null});
+ if(maxSt>=2)ARMORS.filter(a=>owns('r:'+a.id)).forEach(a=>L.push({cls:c,st:2,path:null,armor:a.id}));
+ let paths=[];if(m&&S.mastered[c].asc)paths=['light','dark'];if(cur&&canAsc()&&S.asc)paths=S.ascBoth||m?['light','dark']:[S.asc];
+ [...new Set(paths)].forEach(p=>L.push({cls:c,st:3,path:p,armor:null}));return L}
+const ofKey=f=>[f.cls,f.st,f.path||'',f.armor||''].join(':');
+function curOutfit(){const f=S.outfit;if(!f||!S.hero)return null;return outfitList(f.cls).some(x=>ofKey(x)===ofKey(f))?f:null}
+const dispCls=()=>{const f=curOutfit();return f?f.cls:S.hero.cls};
+const ofName=f=>f.st===3?ascName(f.cls,f.path):evoN(f.cls,f.st)+(f.armor?(f.armor==='gold'?' Dourado':' Platinado'):'');
+function heroA(size,stage,o){const a=AURAS.find(x=>x.id===S.aura);let cls=S.hero.cls,st=stage??dispStage();o=o||{};const f=stage==null?curOutfit():null;
+ if(f){cls=f.cls;st=f.st;o=Object.assign({path:f.path,armor:f.armor},o)}
+ let inner=hero(cls,size,null,st,null,o);
+ if(st===3){const p=(o&&o.path)||S.asc||'light';inner=`<span class="ascfx ${p}" style="--pc:${ASC_FX[cls][p]}">${inner}<i></i><i></i><i></i><i></i><i></i><i></i></span>`}
  else if(st===2){const ar=(o&&o.armor!==undefined)?o.armor:EQ().armor;if(ar)inner=`<span class="armfx arm-${ar}">${inner}</span>`}return a?`<span class="aura ${a.id==='prism'?'prism':''}" style="--ac:${a.c}">${inner}</span>`:inner}
 function header(){const n=need(S.level),mx=S.level>=MAX_LV,pct=mx?100:Math.min(100,S.xp/n*100);
  return `<div class="topbar">${logo(30,true)}</div><div class="win hdr"><div class="row"><div class="avatar">${heroA(60)}</div><div class="grow">
@@ -1355,13 +1380,15 @@ function viewInv(){const c=S.hero.cls,e=EQ(),O=S.owned||[];
  const total=th.length+ws.length-1+ac.length+ts.length-1+au.length+tts.length;
  const forSale=THEMES.length+WEAPONS[c].length-1+ACCS.length+TECHS[c].length-1+AURAS.length+TITLE_SHOP.length-(th.length+ws.length-1+ac.length+ts.length-1+au.length+TITLE_SHOP.filter(t=>owns('n:'+t.id)).length);
  const cw=WEAPONS[c].find(w=>w.id===curW())||WEAPONS[c][0],ct=TECHS[c].find(t=>t.id===curT())||TECHS[c][0],ca=AURAS.find(a=>a.id===S.aura);
- const TABS=[['look','🎨','Visual',th.length+ac.length],['fight','🗡','Combate',ws.length-1+ts.length-1],['aura','✨','Aura',au.length],['title','🏷','Título',tts.length],['items','🎁','Itens',(S.items.shield||0)+(S.potions||0)+(S.elixirs||0)]];
+ const TABS=[['look','🎨','Visual',th.length+ac.length],['fight','🗡','Combate',ws.length-1+ts.length-1],['aura','✨','Aura',au.length],['title','🏷','Título',tts.length],['ward','👘','Figurino',['war','mag','mon','bar'].reduce((n,k)=>n+outfitList(k).length,0)],['items','🎁','Itens',(S.items.shield||0)+(S.potions||0)+(S.elixirs||0)]];
  const g=x=>`<div class="invgrid">${x}</div>`,none=t=>`<div class="empty" style="padding:14px 0">${t}</div>`;
  let body='';
  const ascOpts=S.asc&&canAsc()?(S.ascBoth?['light','dark']:[S.asc]):[];const arms=ARMORS.filter(a=>O.includes('r:'+a.id));
  const formRow=ascOpts.length?`<div class="tier" style="margin-top:0">✦ Forma exibida</div>${g(ascOpts.map(p=>invBtn('f:'+p,ascOn()&&S.asc===p,hero(c,52,null,3,null,{path:p}),ascName(c,p))).join('')+invBtn('f:classic',!ascOn(),hero(c,52,null,2),evoN(c,2)))}`:'';
  const armRow=arms.length?`<div class="tier">🛡 Traje lendário <small class="mut">(forma ${evoN(c,2)})</small></div>${g(invBtn('r:',!e.armor,hero(c,52,null,2,null,{armor:null}),'Padrão')+arms.map(a=>invBtn('r:'+a.id,e.armor===a.id,hero(c,52,null,2,null,{armor:a.id}),a.n)).join(''))}`:'';
- if(invTab==='look')body=`${formRow}${armRow}<div class="tier" ${formRow||armRow?'':'style="margin-top:0"'}>🎨 Cor da roupa</div>${g(invBtn('c:',!e.color,hero(c,52,null,Math.min(dispStage(),2),null,{color:null}),'Original')+th.map(t=>invBtn('c:'+t.id,e.color===t.id,hero(c,52,null,Math.min(dispStage(),2),null,{color:t.id}),t.n)).join(''))}
+ if(invTab==='ward'){const cf=curOutfit(),CL=['war','mag','mon','bar'].sort((a,b)=>(b===S.hero.cls)-(a===S.hero.cls));
+  body=`<div class="sub" style="margin:0 0 8px">O figurino muda só a aparência. Arma, técnica, bônus e evolução vêm sempre da classe atual: <b style="color:var(--gold);font-weight:normal">${CLASSES[S.hero.cls].n}</b>.</div>${g(`<button class="inv ${!cf?'on':''}" data-act="outfit" data-id="auto">${hero(S.hero.cls,52,null,dispStage())}<span>Automático<br><small class="mut">forma atual</small></span></button>`)}${CL.map(k=>{const L=outfitList(k);return `<div class="tier">${CLASSES[k].n}${isMastered(k)?' <span style="color:var(--gold)">★ dominado</span>':k===S.hero.cls?' · classe atual':''}</div>${L.length?g(L.map(f=>`<button class="inv ${cf&&ofKey(cf)===ofKey(f)?'on':''}" data-act="outfit" data-id="${ofKey(f)}">${hero(f.cls,f.st===3?60:52,null,f.st,null,{path:f.path,armor:f.armor})}<span>${ofName(f)}</span></button>`).join('')):`<div class="sub" style="font-size:12px">🔒 Leve o ${CLASSES[k].n} ao nível 50 para liberar todos os figurinos dele.</div>`}`}).join('')}`}
+ else if(invTab==='look')body=`${armRow}<div class="tier" ${formRow||armRow?'':'style="margin-top:0"'}>🎨 Cor da roupa</div>${g(invBtn('c:',!e.color,hero(c,52,null,Math.min(dispStage(),2),null,{color:null}),'Original')+th.map(t=>invBtn('c:'+t.id,e.color===t.id,hero(c,52,null,Math.min(dispStage(),2),null,{color:t.id}),t.n)).join(''))}
   <div class="tier">👑 Acessório</div>${g(invBtn('a:',!e.acc,hero(c,52,null,Math.min(dispStage(),2),null,{acc:null}),'Nenhum')+ac.map(a=>invBtn('a:'+a.id,e.acc===a.id,hero(c,52,null,Math.min(dispStage(),2),null,{acc:a.id}),a.n)).join(''))}`;
  else if(invTab==='fight')body=`<div class="tier" style="margin-top:0">🗡 Arma</div>${g(ws.map(w=>invBtn('w:'+c+':'+w.id,curW()===w.id,hero(c,52,null,Math.min(dispStage(),2),null,{weapon:w.id}),w.n+(w.el?`<small class="mut" style="display:block">${w.el}</small>`:''))).join(''))}
   <div class="tier">⚡ Técnica de ataque</div>${ts.map(t=>`<button class="techrow ${curT()===t.id?'on':''}" data-act="equip" data-id="t:${c}:${t.id}"><span style="font-size:22px">⚡</span><span class="grow" style="text-align:left">${t.n}<small class="mut" style="display:block">${t.d}</small></span>${curT()===t.id?'<b class="eqd">EQUIPADA</b>':''}</button>`).join('')}`;
@@ -1398,7 +1425,7 @@ function viewHero(){const C=CLASSES[S.hero.cls];const mx=Math.max(...Object.keys
   <div class="name">${esc(S.hero.name)}${S.rebirths?` <span class="rbst">${'★'.repeat(Math.min(S.rebirths,5))}</span>`:''}</div><div class="sub">${clsName(S.hero.cls)} · ${heroTitle()} · <span class="lv px">LV ${S.level}</span></div><div class="sub" style="margin-top:4px">${C.d}</div></div>
  <div class="win"><h2>✦ Linha de evolução</h2><div class="evo">${[0,1,2,3].map(i=>{const ds=S.asc&&canAsc()?3:stageOf(S.level),on=ds>=i;return `${i?'<b>▶</b>':''}<div class="${on?'':'off'} ${dispStage()===i?'cur':''}">${on?hero(S.hero.cls,48,null,i):heroSil(S.hero.cls,48,i)}<span>${on?evoN(S.hero.cls,i):'???'}</span><i class="px">LV ${EVO_LV[i]}</i></div>`}).join('')}</div>
   <div class="mut" style="font-size:12px;margin-top:8px">${stageOf(S.level)<2?`Próxima evolução no nível ${EVO_LV[stageOf(S.level)+1]} (faltam ${EVO_LV[stageOf(S.level)+1]-S.level} níveis).`:S.asc&&canAsc()?`Forma ascendida: caminho ${S.asc==='dark'?'das Trevas':'da Luz'}.${S.ascBoth?' Troque de caminho em Itens → Visual.':' No nível 50 os dois caminhos ficam liberados.'}`:canAsc()?'A Ascensão está disponível!':`Ascensão no nível ${ASC_LV} (faltam ${ASC_LV-S.level} níveis).`}</div>${canAsc()&&!S.asc?'<button class="btn wide" style="margin-top:10px" data-act="ascopen">✦ Escolher caminho da Ascensão</button>':''}</div>
-  <div class="win"><h2>🔥 Renascimento${S.rebirths?`<span class="cnt">${S.rebirths}× · +${Math.min(S.rebirths,5)*5}% ouro</span>`:''}</h2><div class="sub">No nível 50 você pode renascer: volta ao nível 1, mantém a forma ascendida, ouro, itens, títulos e conquistas, e ganha +5% de ouro para sempre (até +25%). Ao renascer 1, 3 e 5 vezes você ganha títulos lendários.</div>
+  <div class="win"><h2>🔥 Renascimento${S.rebirths?`<span class="cnt">${S.rebirths}× · +${Math.min(S.rebirths,5)*5}% ouro</span>`:''}</h2><div class="sub">No nível 50 você pode renascer: volta ao nível 1 e escolhe continuar na classe ou começar outra. Ouro, itens, títulos e conquistas ficam com você, e as formas conquistadas vão para o Guarda-roupa, e ganha +5% de ouro para sempre (até +25%). Ao renascer 1, 3 e 5 vezes você ganha títulos lendários.</div>
   ${S.level>=MAX_LV?`<button class="btn red wide" style="margin-top:10px" data-act="rebirth">Renascer</button>`:`<div class="mut" style="font-size:12px;margin-top:8px">Disponível no nível 50 (faltam ${MAX_LV-S.level} níveis).</div>`}</div>
  <div class="win"><h2>Atributos</h2>${Object.entries(CATS).map(([k,c])=>`<div class="stat"><span style="color:${c.c}">${c.a}</span><div class="bar st" style="color:${c.c}"><i style="width:${attr(k)/mx*100}%"></i></div><span class="px" style="font-size:11px;text-align:right">${attr(k)}</span></div>`).join('')}
   <div class="mut" style="font-size:12px;margin-top:6px">Força = Trabalho · Inteligência = Estudos · Vitalidade = Saúde · Carisma = Pessoal. Sobem conforme você ganha EXP em cada área.</div></div>
@@ -1536,13 +1563,21 @@ const ACT={
  ascpick:id=>{S.asc=id;S.form='asc';const t=id==='dark'?'asc_d':'asc_l';if(!owns('n:'+t))S.owned.push('n:'+t);const got=checkAch();save();closeModal();const d=ascDone;ascDone=null;evolve(2,3,()=>{render();achToasts(got,d)})},
  ascclose:()=>{closeModal();const d=ascDone;ascDone=null;render();d&&d()},
  ascopen:()=>ascChoice(),
+ outfit:id=>{if(id==='auto')S.outfit=null;else{const[c,st,p,a]=id.split(':');S.outfit={cls:c,st:+st,path:p||null,armor:a||null}}save();render();SFX.sel()},
  invtab:id=>{invTab=id;render();SFX.sel()},
  goshop:()=>{OPEN.ars=true;ACT.tab('tavern');setTimeout(()=>{const e=document.querySelector('[data-sec=ars]');if(e)e.scrollIntoView({block:'start'})},60)},
  orient:id=>{S.orient=id;save();render();SFX.sel()},
  uitheme:id=>{S.uiTheme=id;save();render();SFX.sel()},
  diffmode:id=>{S.diffMode=id;const ups=levelLoop();save();render();SFX.sel();if(ups.length)levelUps(ups)},
- rebirth:()=>{if(S.level<MAX_LV)return;ask(`Renascer?<br><span class="mut" style="font-size:14px">Você volta ao nível 1 e mantém a forma ascendida, ouro, itens, títulos e conquistas. Ganha +5% de ouro permanente.</span>`,'Renascer',()=>{S.rebirths=(S.rebirths||0)+1;S.level=1;S.xp=0;
-  TITLE_RB.forEach(([k,id])=>{if(S.rebirths>=k&&!owns('n:'+id))S.owned.push('n:'+id)});addLog(`🔥 Renasceu pela ${S.rebirths}ª vez`,0,0);const got=checkAch();save();render();SFX.lvl();achToasts(got);toast(`<span style="font-size:22px">🔥</span><div class="grow">Você renasceu! Ouro +${Math.min(S.rebirths,5)*5}% para sempre.</div>`)},false)},
+ rebirth:()=>{if(S.level<MAX_LV)return;const cur=S.hero.cls;
+  modal(`<h2>🔥 Renascimento</h2><div class="sub" style="margin-bottom:10px">Você volta ao nível 1 e ganha +5% de ouro para sempre. Escolha a classe da nova jornada. Ouro, títulos, conquistas, acessórios, auras e trajes continuam com você, e o ${CLASSES[cur].n} fica dominado no Guarda-roupa.</div>
+   <div class="rbpick">${Object.keys(CLASSES).map(k=>`<button class="rbcard ${k===cur?'cur':''}" data-act="rbpick" data-id="${k}">${hero(k,60,null,isMastered(k)||k===cur?(k===cur&&S.asc?3:2):0,null,{path:k===cur?S.asc:(S.mastered[k]&&S.mastered[k].asc)||'light'})}<b>${CLASSES[k].n}</b><small>${k===cur?'continuar':isMastered(k)?'★ já dominado':'nova classe'}</small><small class="mut">${CLASSES[k].d}</small></button>`).join('')}</div>
+   <div class="actions"><button class="btn ghost" data-act="close">Cancelar</button></div>`)},
+ rbpick:id=>{const cur=S.hero.cls;ask(`${id===cur?`Renascer como ${CLASSES[id].n}?`:`Renascer como ${CLASSES[id].n}?`}<br><span class="mut" style="font-size:14px">${id===cur?'Você recomeça a mesma classe do nível 1.':'Uma nova jornada começa no nível 1, com o bônus da nova classe. Seus figurinos do '+CLASSES[cur].n+' ficam no Guarda-roupa.'}</span>`,'Renascer',()=>{
+  markMastery();S.mastered[cur]={asc:S.asc||null};S.rebirths=(S.rebirths||0)+1;S.level=1;S.xp=0;
+  if(id!==cur){S.hero.cls=id;const m=S.mastered[id];S.asc=m?m.asc:null;S.ascBoth=!!m;S.form='asc';S.stats.classes=(S.stats.classes||0)+1}
+  TITLE_RB.forEach(([k,i2])=>{if(S.rebirths>=k&&!owns('n:'+i2))S.owned.push('n:'+i2)});addLog(`🔥 Renasceu como ${CLASSES[id].n} (${S.rebirths}ª vez)`,0,0);const got=checkAch();save();tab='hero';render();SFX.lvl();achToasts(got);
+  toast(`<span style="font-size:22px">🔥</span><div class="grow">Você renasceu como ${CLASSES[id].n}! Ouro +${Math.min(S.rebirths,5)*5}% para sempre.${id!==cur?' Troque o visual em Itens → Figurino.':''}</div>`)},false)},
  layout:id=>{S.layout=id;save();render();SFX.sel()},
  obskin:id=>{obSkin=+id;const n=$('#obname').value;SFX.sel();render();$('#obname').value=n},
  obcls:id=>{obCls=id;const n=$('#obname').value;SFX.sel();render();$('#obname').value=n},
