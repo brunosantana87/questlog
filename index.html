@@ -170,6 +170,12 @@ select.in{appearance:none;-webkit-appearance:none}
 .ev0{animation:evo0 1.8s forwards}.ev1{opacity:0;animation:evo1 1.8s forwards}
 @keyframes evo0{0%,20%{opacity:1;filter:none}25%,35%,45%,55%,65%{opacity:1;filter:brightness(5)}30%,40%,50%,60%{opacity:.3}75%,100%{opacity:0;filter:brightness(5)}}
 @keyframes evo1{0%,70%{opacity:0;filter:brightness(5)}85%{opacity:1;filter:brightness(3)}100%{opacity:1;filter:none}}
+.sec>summary{list-style:none;cursor:pointer}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary h2{margin:0}
+.sec[open]>summary h2{margin-bottom:10px}
+.sec .arw{font-style:normal;display:inline-block;transition:transform .15s;font-size:13px;color:var(--mut)}
+.sec[open] .arw{transform:rotate(90deg)}
 .invitem{background:#0a1050;border:2px solid #ffffff33;border-radius:10px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-width:0}
 .invitem .potslot{width:70px;height:70px}
 .invitem .iname{color:var(--gold)}
@@ -649,7 +655,7 @@ function questRow(q){const D=DIFF[q.diff],C=CATS[q.cat];const done=qDone(q),T=qT
  const L=q.link&&S.quests.find(x=>x.id===q.link);
  return `<div class="q ${done?'done':''} ${sh?'shq':''}"><div class="mon">${mon(mk,32,sh)}${sh?'<b class="spark">✦</b>':''}</div><div class="grow">
   <div class="t" data-act="qedit" data-id="${q.id}">${esc(q.title)}</div>
-  <div class="meta"><span><i class="dot" style="background:${C.c}"></i>${C.n}</span><span${sh?' class="shn"':''}>${sh?'✦ ':''}${mname(mk)} · ${D.xp} EXP</span>${typ?`<span>${typ}</span>`:''}${q.due&&!done?`<span class="${late?'late':''}">${late?'ATRASADA · ':dueToday?'HOJE · ':''}${fmtDate(q.due)}</span>`:''}</div>
+  <div class="meta"><span${sh?' class="shn"':''}>${sh?'✦ ':''}${mname(mk)} · ${D.xp} EXP</span>${typ?`<span>${typ}</span>`:''}${q.due&&!done?`<span class="${late?'late':''}">${late?'ATRASADA · ':dueToday?'HOJE · ':''}${fmtDate(q.due)}</span>`:''}</div>
   ${T>1?`<div class="prog"><div class="bar hp"><i style="width:${P/T*100}%"></i></div><span>${P}/${T} ${esc(q.unit||'')}</span></div>${T<=12?`<div class="pips">${Array.from({length:T},(_,i)=>`<i class="${i<P?'on':''}"></i>`).join('')}</div>`:''}`:''}
   ${L?`<div class="meta"><span>⤷ soma em: ${esc(L.title)}</span></div>`:''}</div>
   ${done?`<span class="mut" style="font-size:13px;text-align:right">${q.type==='daily'?'Amanhã':q.type==='weekly'?'Próxima<br>semana':'Feita'}</span>`:`<button class="btn sm" data-act="done" data-id="${q.id}">${T>1?'+1':'Atacar'}</button>`}</div>`}
@@ -666,11 +672,17 @@ function viewQuests(){
  }
  if(S.quests.length){
   h+=`<div class="seg">${[['all','Todas'],['daily','Diárias'],['weekly','Semanais'],['once','Únicas']].map(([k,n])=>`<button data-act="filter" data-id="${k}" class="${filter===k?'on':''}">${n}</button>`).join('')}</div>`;
-  if(filter==='all'||filter==='daily')h+=`<div class="win"><h2>☀ Diárias<span class="cnt">${dDone}/${daily.length}</span></h2>${daily.length?daily.map(questRow).join(''):'<div class="empty">Nenhuma diária. Crie hábitos que renascem todo dia.</div>'}
-   ${daily.length&&dDone===daily.length?'<div class="empty" style="color:var(--xp)">Todas as diárias vencidas hoje! ✦</div>':''}</div>`;
-  if(filter==='all'||filter==='weekly')h+=`<div class="win"><h2>🗓 Semanais<span class="cnt">${wDone}/${weekly.length} · até domingo</span></h2>${weekly.length?weekly.map(questRow).join(''):'<div class="empty">Nenhuma semanal. Elas renascem toda segunda-feira.</div>'}</div>`;
-  if(filter==='all'||filter==='once')h+=`<div class="win"><h2>⚔ Únicas<span class="cnt">${once.length} ativas</span></h2>${once.length?once.map(questRow).join(''):'<div class="empty">Nenhum inimigo à vista.</div>'}
-   ${doneOnce.length?`<details style="margin-top:8px"><summary>▸ Concluídas (${doneOnce.length})</summary>${doneOnce.slice(0,30).map(questRow).join('')}<button class="btn sm ghost" style="margin-top:8px" data-act="clear">Limpar concluídas</button></details>`:''}</div>`;
+  h+=`<div class="sub" style="margin:-4px 0 10px;text-align:center">☀ Diárias hoje: <b style="color:var(--gold);font-weight:normal">${dDone}/${daily.length}</b> · 🗓 Semanais: <b style="color:var(--gold);font-weight:normal">${wDone}/${weekly.length}</b>${daily.length&&dDone===daily.length?' · <span style="color:var(--xp)">diárias completas! ✦</span>':''}</div>`;
+  const ord={daily:0,weekly:1,once:2},due=q=>q.due||'9999';
+  const pool=S.quests.filter(q=>(filter==='all'||q.type===filter)&&!(q.type==='once'&&q.done))
+   .sort((a,b)=>ord[a.type]-ord[b.type]||(qDone(a)-qDone(b))||(due(a)<due(b)?-1:due(a)>due(b)?1:0)||a.created-b.created);
+  const ICON={trab:'⚔',est:'📚',sau:'❤',pes:'✦'};let any=false;
+  Object.entries(CATS).forEach(([k,c])=>{const L=pool.filter(q=>q.cat===k);if(!L.length)return;any=true;
+   const rec=L.filter(q=>q.type!=='once'),dn=rec.filter(qDone).length,act=L.filter(q=>q.type==='once').length;
+   const op=OPEN['cat_'+k]!==false;
+   h+=`<div class="win"><details class="sec" data-sec="cat_${k}" ${op?'open':''}><summary><h2><i class="arw">▸</i><span style="color:${c.c}">${ICON[k]}</span> ${c.n}<span class="cnt">${rec.length?`${dn}/${rec.length} feitas`:''}${rec.length&&act?' · ':''}${act?`${act} única${act>1?'s':''}`:''}</span></h2></summary>${L.map(questRow).join('')}</details></div>`});
+  if(!any)h+=`<div class="win"><div class="empty">Nenhuma missão neste filtro.</div></div>`;
+  if(filter==='all'||filter==='once'){if(doneOnce.length)h+=`<div class="win"><details class="sec" data-sec="doneonce" ${OPEN.doneonce?'open':''}><summary><h2><i class="arw">▸</i>✔ Únicas concluídas<span class="cnt">${doneOnce.length}</span></h2></summary>${doneOnce.slice(0,30).map(questRow).join('')}<button class="btn sm ghost" style="margin-top:8px" data-act="clear">Limpar concluídas</button></details></div>`}
  }
  h+=`<div class="fabs"><button class="btn blue" data-act="tpl">📜 Modelos</button><button class="btn" data-act="new">+ Nova missão</button></div>`;
  return h}
@@ -743,15 +755,16 @@ function viewFocus(){let h=header();const f=S.focus;
    <div class="timer px" id="rtime">${z(Math.floor(left/60000))}:${z(Math.floor(left/1000)%60)}</div>
    <div class="tb mut" style="text-align:center;font-size:14px">Levante, alongue-se, beba água e descanse os olhos. A próxima batalha de foco libera quando o descanso acabar.</div>
    <button class="btn ghost wide" style="margin-top:12px" data-act="restend">Encerrar descanso</button></div>`}
- else{h+=potionBox()+`<div class="win"><h2>⧗ Batalha de foco</h2><div class="tb"><span class="who">Mestre:</span> Escolha um inimigo e lute sem distrações até o fim do tempo. Se fugir, ele escapa e você não ganha nada.</div>
+ else{h+=`<div class="win"><h2>⧗ Batalha de foco</h2><div class="tb"><span class="who">Mestre:</span> Escolha um inimigo e lute sem distrações até o fim do tempo. Se fugir, ele escapa e você não ganha nada.</div>
   <label class="f">Inimigo</label><div class="pick c2">${FOCUS.map(x=>`<button data-act="fmin" data-id="${x.min}" class="${fMin===x.min?'on':''}">${mon(x.m,40)}<span class="px" style="font-size:11px">${x.min} min</span><small>${x.min} EXP · ${Math.round(x.min/5)} G</small></button>`).join('')}</div>
   <div class="mut" style="text-align:center;font-size:13px;margin-top:6px">${FOCUS.find(x=>x.min===fMin).n}</div>
   <label class="f">Área de foco</label><div class="pick c4">${Object.entries(CATS).map(([k,c])=>`<button data-act="fcat" data-id="${k}" class="${fCat===k?'on':''}"><span style="color:${c.c}">${c.a}</span>${c.n}</button>`).join('')}</div>
   <button class="btn wide" style="margin-top:14px" data-act="fstart">Iniciar batalha</button></div>
-  <div class="win"><h2>Registro de foco</h2><div class="grid2"><div class="kv"><b>${S.stats.focus}</b><span>batalhas vencidas</span></div><div class="kv"><b>${Math.floor(S.stats.focusMin/60)}h ${S.stats.focusMin%60}m</b><span>tempo focado</span></div></div></div>`}
+  ${potionBox()}<div class="win"><h2>Registro de foco</h2><div class="grid2"><div class="kv"><b>${S.stats.focus}</b><span>batalhas vencidas</span></div><div class="kv"><b>${Math.floor(S.stats.focusMin/60)}h ${S.stats.focusMin%60}m</b><span>tempo focado</span></div></div></div>`}
  return h}
 
-let editRw=false;const bestShiny={};
+let editRw=false;const OPEN={best:false,ach:false};
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.sec)OPEN[d.dataset.sec]=d.open},true);const bestShiny={};
 function viewTavern(){let h=header();
  h+=`<div class="win"><h2>♦ Taverna do Dragão Dourado<span class="cnt">${S.gold} G</span></h2><div class="tb"><span class="who">Taverneira:</span> Gaste seu ouro com recompensas de verdade. Você mereceu, herói!</div></div>
  <div class="win"><h2>Cardápio<button class="btn sm ghost" style="margin-left:auto" data-act="rwedit">${editRw?'Pronto':'Editar'}</button></h2>
@@ -773,10 +786,10 @@ function viewHero(){const C=CLASSES[S.hero.cls];const mx=Math.max(...Object.keys
   <div class="kv"><b>${S.streak} 🔥</b><span>sequência atual</span></div><div class="kv"><b>${S.best}</b><span>melhor sequência</span></div>
   <div class="kv"><b>${S.stats.bosses}</b><span>chefes vencidos</span></div><div class="kv"><b>${S.stats.goldEarned} G</b><span>ouro conquistado</span></div></div>
   <div class="mut" style="font-size:12px;margin-top:8px">Sequência: complete ao menos 1 missão por dia. Cada dia seguido dá +3% de EXP (até +30%).</div></div>
- <div class="win"><h2>📖 Bestiário<span class="cnt">${BEST.filter(k=>S.bestiary[k]).length}/${BEST.length} · <span class="shn">✦ ${Object.keys(S.shinyDex).length}</span></span></h2>
+ <div class="win"><details class="sec" data-sec="best" ${OPEN.best?'open':''}><summary><h2><i class="arw">▸</i>📖 Bestiário<span class="cnt">${BEST.filter(k=>S.bestiary[k]).length}/${BEST.length} · <span class="shn">✦ ${Object.keys(S.shinyDex).length}</span></span></h2></summary>
   ${[['e','Fáceis'],['m','Médios'],['h','Difíceis'],['b','Chefes']].map(([d,n])=>`<div class="tier">${n}</div><div class="best">${DIFF[d].pool.map(k=>S.bestiary[k]?`<div class="${S.shinyDex[k]?'gotsh':''}" ${S.shinyDex[k]?`data-act="bshiny" data-id="${k}"`:''}>${S.shinyDex[k]?`<b class="spark">✦</b>`:''}${mon(k,44,!!S.shinyDex[k]&&bestShiny[k])}<span>${mname(k)}</span><i>${S.bestiary[k]}x${S.shinyDex[k]?` · ✦${S.shinyDex[k]}`:''}</i></div>`:`<div class="off">${svg(SPR[k].rows,Object.fromEntries(Object.keys(SPR[k].pal).map(c=>[c,'#2c3478'])),44)}<span>???</span><i>&nbsp;</i></div>`).join('')}</div>`).join('')}
-  <div class="mut" style="font-size:12px;margin-top:8px">Cada missão sorteia um monstro da sua dificuldade. Há 1 chance em 12 de surgir uma versão <span class="shn">✦ especial</span>, com cores raras e recompensa em dobro. Toque num monstro especial já capturado para alternar as cores.</div></div>
- <div class="win"><h2>🏆 Conquistas<span class="cnt">${Object.keys(S.ach).length}/${ACH.length}</span></h2><div class="ach">${ACH.map(a=>S.ach[a[0]]?`<div class="on">${a[1]}<i>${a[2]}</i></div>`:`<div class="off">???<i>${a[2]}</i></div>`).join('')}</div></div>
+  <div class="mut" style="font-size:12px;margin-top:8px">Cada missão sorteia um monstro da sua dificuldade. Há 1 chance em 12 de surgir uma versão <span class="shn">✦ especial</span>, com cores raras e recompensa em dobro. Toque num monstro especial já capturado para alternar as cores.</div></details></div>
+ <div class="win"><details class="sec" data-sec="ach" ${OPEN.ach?'open':''}><summary><h2><i class="arw">▸</i>🏆 Conquistas<span class="cnt">${Object.keys(S.ach).length}/${ACH.length}</span></h2></summary><div class="ach">${ACH.map(a=>S.ach[a[0]]?`<div class="on">${a[1]}<i>${a[2]}</i></div>`:`<div class="off">???<i>${a[2]}</i></div>`).join('')}</div></details></div>
  <div class="win"><h2>📜 Diário de aventura</h2><div class="log">${S.log.length?S.log.slice(0,40).map(l=>{const d=new Date(l.t);return `<div><span class="mut">${z(d.getDate())}/${z(d.getMonth()+1)}</span><span>${esc(l.txt)}</span><span>${l.xp?'+'+l.xp+' EXP':''}${l.g<0?` <span style="color:var(--gold)">${l.g} G</span>`:''}</span></div>`}).join(''):'<div class="empty">Sua lenda ainda não começou.</div>'}</div></div>
  <div class="win"><h2>⚙ Configurações</h2>
   <div class="switch"><span>Efeitos sonoros</span><button class="btn sm ${S.sound?'':'ghost'}" data-act="sound">${S.sound?'Ligado':'Desligado'}</button></div>
