@@ -485,6 +485,22 @@ body.lay-modern .ttb{border-width:1px;border-radius:999px}
 .tabs button{font-size:12px}
 body.lay-modern .invtabs button,body.lay-modern .techrow{border-width:1px;border-radius:14px}
 body.lay-modern .ihspr{border:0;border-radius:18px;box-shadow:0 0 0 2px var(--gold)}
+
+/* ===== modo paisagem ===== */
+@media (orientation:landscape) and (max-height:560px){
+ .tabs{top:0;bottom:0;right:auto;width:calc(env(safe-area-inset-left) + 88px);padding:calc(env(safe-area-inset-top) + 8px) 6px calc(env(safe-area-inset-bottom) + 8px) calc(env(safe-area-inset-left) + 8px);background:none}
+ .tabs .in{height:100%;max-width:none;grid-template-columns:1fr;grid-template-rows:repeat(6,1fr);gap:3px;padding:5px}
+ .tabs button{padding:2px;justify-content:center}
+ .app{max-width:none;margin:0;padding:10px calc(env(safe-area-inset-right) + 16px) 90px calc(env(safe-area-inset-left) + 104px)}
+ .app>*{max-width:760px}
+ .fabs{left:auto;right:calc(env(safe-area-inset-right) + 6px);bottom:calc(env(safe-area-inset-bottom) + 12px);max-width:none;margin:0}
+ .toast{bottom:calc(env(safe-area-inset-bottom) + 12px);left:calc(50% + 44px)}
+ .invhero{top:0}
+ .battle{flex-direction:row;gap:18px;padding:10px 20px}
+ .battle .stage{flex:1;max-width:420px}
+ .battle>.win,.battle .win{max-width:380px;margin-top:0!important}
+ .ov .win{max-height:94vh}
+}
 </style>
 </head>
 <body>
@@ -1302,6 +1318,8 @@ function viewHero(){const C=CLASSES[S.hero.cls];const mx=Math.max(...Object.keys
  <div class="win"><details class="sec" data-sec="ach" ${OPEN.ach?'open':''}><summary><h2><i class="arw">▸</i>🏆 Conquistas<span class="cnt">${Object.keys(S.ach).length}/${ACH.length}</span></h2></summary><div class="ach">${ACH.map(a=>S.ach[a[0]]?`<div class="on">${a[1]}<i>${a[2]}</i></div>`:`<div class="off">???<i>${a[2]}</i></div>`).join('')}</div></details></div>
  <div class="win"><details class="sec" data-sec="cfg" ${OPEN.cfg?'open':''}><summary><h2><i class="arw">▸</i>⚙ Configurações</h2></summary>
   <div style="margin:2px 0 8px"><span>Tema</span><div class="lookpick">${Object.entries(LOOKS).map(([k,t])=>`<button data-act="uitheme" data-id="${k}" class="${(S.uiTheme||'normal')===k?'on':''}"><span class="sw">${t.sw.map(c=>`<i style="background:${c}"></i>`).join('')}</span>${t.n}</button>`).join('')}</div>
+  <span>Orientação da tela</span><div class="lookpick">${[['auto','Automática','⟳'],['portrait','Retrato','▯'],['land','Paisagem','▭']].map(([k,n,ic])=>`<button data-act="orient" data-id="${k}" class="${(S.orient||'auto')===k?'on':''}"><span style="font-size:24px;line-height:30px">${ic}</span>${n}</button>`).join('')}</div>
+  <small class="mut" style="display:block;font-size:11px;margin:-2px 0 8px">No app instalado no Android a tela trava na opção escolhida. No iPhone e no navegador, ela segue a rotação do aparelho.</small>
   <span>Layout</span><div class="lookpick c2">${[['classic','Clássico','font-family:DotGothic16,monospace;border:2px solid currentColor'],['modern','Moderno','font-family:system-ui,sans-serif;font-weight:700;border-radius:12px;border:1px solid currentColor;letter-spacing:1px']].map(([k,n,st])=>`<button data-act="layout" data-id="${k}" class="${(S.layout||'classic')===k?'on':''}"><span class="lay" style="${st}">${k==='modern'?'MENU':'MENU'}</span>${n}</button>`).join('')}</div></div>
   <div style="margin:0 0 8px"><span>Dificuldade do jogo</span><div class="seg" style="margin:6px 0 2px">${Object.entries(DIFFMODE).map(([k,d])=>`<button data-act="diffmode" data-id="${k}" class="${(S.diffMode||'normal')===k?'on':''}">${d.n}</button>`).join('')}</div><small class="mut" style="font-size:11px">Tranquilo: −25% de EXP por nível · Desafiador: +25%</small></div>
   <div class="switch"><span>Efeitos sonoros</span><button class="btn sm ${S.sound?'':'ghost'}" data-act="sound">${S.sound?'Ligado':'Desligado'}</button></div>
@@ -1327,7 +1345,9 @@ function viewOnboard(){return `<div class="logo">${logo(200)}</div><div class="t
  <button class="btn wide" style="margin-top:14px" data-act="obgo">Iniciar aventura ▶</button></div>`}
 
 const LOOKS={normal:{n:'Normal',bg:'#0b0f2a',sw:['#26348f','#111952','#ffd447','#e9ecff']},light:{n:'Claro',bg:'#e9edf8',sw:['#ffffff','#e1e6f6','#a8650a','#3c4a9e']},dracula:{n:'Escuro',bg:'#282a36',sw:['#343746','#21222c','#ff79c6','#bd93f9']}};
-function applyLook(){const b=document.body;if(!b)return;const t=LOOKS[S.uiTheme]?S.uiTheme:'normal';b.classList.remove('th-light','th-dracula','lay-modern');if(t!=='normal')b.classList.add('th-'+t);if(S.layout==='modern')b.classList.add('lay-modern');const m=document.querySelector('meta[name=theme-color]');if(m)m.content=LOOKS[t].bg}
+let _orient=null;
+function applyOrient(){const o=S.orient||'auto';if(o===_orient)return;_orient=o;try{const so=screen.orientation;if(!so)return;if(o==='auto'){so.unlock&&so.unlock()}else if(so.lock){so.lock(o==='land'?'landscape':'portrait').catch(()=>{})}}catch(e){}}
+function applyLook(){const b=document.body;if(!b)return;applyOrient();const t=LOOKS[S.uiTheme]?S.uiTheme:'normal';b.classList.remove('th-light','th-dracula','lay-modern');if(t!=='normal')b.classList.add('th-'+t);if(S.layout==='modern')b.classList.add('lay-modern');const m=document.querySelector('meta[name=theme-color]');if(m)m.content=LOOKS[t].bg}
 function render(){applyLook();
  const A=$('#app');
  if(!S.hero){A.innerHTML=viewOnboard();$('#tabs').style.display='none';return}
@@ -1418,6 +1438,7 @@ const ACT={
  gender:id=>{S.hero.gender=id;save();render();SFX.sel()},
  invtab:id=>{invTab=id;render();SFX.sel()},
  goshop:()=>{OPEN.ars=true;ACT.tab('tavern');setTimeout(()=>{const e=document.querySelector('[data-sec=ars]');if(e)e.scrollIntoView({block:'start'})},60)},
+ orient:id=>{S.orient=id;save();render();SFX.sel()},
  uitheme:id=>{S.uiTheme=id;save();render();SFX.sel()},
  diffmode:id=>{S.diffMode=id;const ups=levelLoop();save();render();SFX.sel();if(ups.length)levelUps(ups)},
  rebirth:()=>{if(S.level<30)return;ask(`Renascer?<br><span class="mut" style="font-size:14px">Você volta ao nível 1 e mantém a forma final, ouro, itens, títulos e conquistas. Ganha +5% de ouro permanente.</span>`,'Renascer',()=>{S.rebirths=(S.rebirths||0)+1;S.level=1;S.xp=0;
