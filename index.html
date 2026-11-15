@@ -322,7 +322,7 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .aura.prism{animation:prismA 3s linear infinite}
 @keyframes auraP{50%{filter:drop-shadow(0 0 1px var(--ac)) drop-shadow(0 0 10px var(--ac))}}
 @keyframes prismA{0%,100%{filter:drop-shadow(0 0 4px #ff5af0) drop-shadow(0 0 8px #ff5af0)}33%{filter:drop-shadow(0 0 4px #5af0ff) drop-shadow(0 0 8px #5af0ff)}66%{filter:drop-shadow(0 0 4px #ffe05a) drop-shadow(0 0 8px #ffe05a)}}
-.tut{text-align:center}.tic{font-size:40px;margin:4px 0}
+.tut{text-align:center}.tut .tic{display:grid;place-items:center;min-height:84px;margin:4px 0 6px}.tut .tb{font-size:15px}.tic{font-size:40px;margin:4px 0}
 .dots{display:flex;justify-content:center;gap:6px;margin-top:12px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--b3)}.dots i.on{background:var(--gold)}
 .goal{margin:6px 0 10px;font-size:14px}.goal .bar{margin-top:3px;height:10px}.goal.ok{color:var(--xp)}
 .tabs button{font-size:12px}
@@ -801,7 +801,7 @@ const qActive=(q,wd)=>q.type!=='daily'||!q.days||!q.days.length||q.days.includes
 const daysTxt=q=>{if(!q.days||q.days.length===7||!q.days.length)return'';const k=q.days.slice().sort().join();if(k==='1,2,3,4,5')return'seg–sex';if(k==='0,6')return'fins de semana';return q.days.slice().sort().map(i=>WDN[i]).join(', ')};
 const IS_PWA=!!document.querySelector('link[rel=manifest]');
 function migrate(s){const f=fresh();if(!s||typeof s!=='object')return f;const o=Object.assign(f,s);
- o.cat=Object.assign(fresh().cat,s.cat||{});o.stats=Object.assign(fresh().stats,s.stats||{});o.potions=o.potions||0;o.elixirs=o.elixirs||0;o.potCycle=o.potCycle||0;o.focusBank=o.focusBank||0;o.ach=o.ach||{};o.bestiary=o.bestiary||{};o.shinyDex=o.shinyDex||{};o.log=o.log||[];o.quests=o.quests||[];o.rewards=o.rewards||[];o.days=o.days||{};o.items=Object.assign({shield:0},o.items||{});o.quests.forEach(q=>{if(q.type==='daily'&&q.diff==='b')q.diff='h'});o.mastered=o.mastered||{};if(o.hero&&((o.rebirths||0)>0||o.level>=50)&&!o.mastered[o.hero.cls])o.mastered[o.hero.cls]={asc:o.asc||null};o.auras=o.auras||[];o.owned=o.owned||[];o.eq=Object.assign({color:null,acc:null,weapon:{},tech:{}},o.eq||{});if(o.hp==null)o.hp=100;if(s.hero&&s.tutDone===undefined)o.tutDone=true;return o}
+ o.cat=Object.assign(fresh().cat,s.cat||{});o.stats=Object.assign(fresh().stats,s.stats||{});o.potions=o.potions||0;o.elixirs=o.elixirs||0;o.potCycle=o.potCycle||0;o.focusBank=o.focusBank||0;o.ach=o.ach||{};o.bestiary=o.bestiary||{};o.shinyDex=o.shinyDex||{};o.log=o.log||[];o.quests=o.quests||[];o.rewards=o.rewards||[];o.days=o.days||{};o.items=Object.assign({shield:0},o.items||{});o.quests.forEach(q=>{if(q.type==='daily'&&q.diff==='b')q.diff='h'});o.mastered=o.mastered||{};if(!o.layMig){o.layout='modern';o.layMig=1}if(o.hero&&((o.rebirths||0)>0||o.level>=50)&&!o.mastered[o.hero.cls])o.mastered[o.hero.cls]={asc:o.asc||null};o.auras=o.auras||[];o.owned=o.owned||[];o.eq=Object.assign({color:null,acc:null,weapon:{},tech:{}},o.eq||{});if(o.hp==null)o.hp=100;if(s.hero&&s.tutDone===undefined)o.tutDone=true;return o}
 let S;try{S=migrate(JSON.parse(localStorage.getItem(KEY)))}catch(e){S=fresh()}
 function checkStreak(){
  if(S.lastActive&&S.lastActive<yesterday()&&S.streak){const missed=dayDiff(S.lastActive,today())-1;
@@ -1444,7 +1444,7 @@ function viewHero(){const C=CLASSES[S.hero.cls];const mx=Math.max(...Object.keys
   <div style="margin:2px 0 8px"><span>Tema</span><div class="lookpick">${Object.entries(LOOKS).map(([k,t])=>`<button data-act="uitheme" data-id="${k}" class="${(S.uiTheme||'normal')===k?'on':''}"><span class="sw">${t.sw.map(c=>`<i style="background:${c}"></i>`).join('')}</span>${t.n}</button>`).join('')}</div>
   <span>Orientação da tela</span><div class="lookpick">${[['auto','Automática','⟳'],['portrait','Retrato','▯'],['land','Paisagem','▭']].map(([k,n,ic])=>`<button data-act="orient" data-id="${k}" class="${(S.orient||'auto')===k?'on':''}"><span style="font-size:24px;line-height:30px">${ic}</span>${n}</button>`).join('')}</div>
   <small class="mut" style="display:block;font-size:11px;margin:-2px 0 8px">No app instalado no Android a tela trava na opção escolhida. No iPhone e no navegador, ela segue a rotação do aparelho.</small>
-  <span>Layout</span><div class="lookpick c2">${[['classic','Clássico','font-family:DotGothic16,monospace;border:2px solid currentColor'],['modern','Moderno','font-family:system-ui,sans-serif;font-weight:700;border-radius:12px;border:1px solid currentColor;letter-spacing:1px']].map(([k,n,st])=>`<button data-act="layout" data-id="${k}" class="${(S.layout||'classic')===k?'on':''}"><span class="lay" style="${st}">${k==='modern'?'MENU':'MENU'}</span>${n}</button>`).join('')}</div></div>
+  <span>Layout</span><div class="lookpick c2">${[['classic','Clássico','font-family:DotGothic16,monospace;border:2px solid currentColor'],['modern','Moderno','font-family:system-ui,sans-serif;font-weight:700;border-radius:12px;border:1px solid currentColor;letter-spacing:1px']].map(([k,n,st])=>`<button data-act="layout" data-id="${k}" class="${(S.layout||'modern')===k?'on':''}"><span class="lay" style="${st}">${k==='modern'?'MENU':'MENU'}</span>${n}</button>`).join('')}</div></div>
   <div style="margin:0 0 8px"><span>Dificuldade do jogo</span><div class="seg" style="margin:6px 0 2px">${Object.entries(DIFFMODE).map(([k,d])=>`<button data-act="diffmode" data-id="${k}" class="${(S.diffMode||'normal')===k?'on':''}">${d.n}</button>`).join('')}</div><small class="mut" style="font-size:11px">Tranquilo: −25% de EXP por nível · Desafiador: +25%</small></div>
   <div class="switch"><span>Efeitos sonoros</span><button class="btn sm ${S.sound?'':'ghost'}" data-act="sound">${S.sound?'Ligado':'Desligado'}</button></div>
   <details class="sfxlist"><summary>▸ Lista de efeitos (${SFX_LIST.length})</summary>${SFX_LIST.map(([k,n,d])=>`<div class="sfx"><div class="grow">♪ ${n}<small>${d}</small></div><button class="btn sm ghost" data-act="sfxtest" data-id="${k}">▶ Testar</button></div>`).join('')}
@@ -1471,7 +1471,7 @@ function viewOnboard(){return `<div class="logo">${logo(200)}</div><div class="t
 const LOOKS={normal:{n:'Normal',bg:'#0b0f2a',sw:['#26348f','#111952','#ffd447','#e9ecff']},light:{n:'Claro',bg:'#e9edf8',sw:['#ffffff','#e1e6f6','#a8650a','#3c4a9e']},dracula:{n:'Escuro',bg:'#282a36',sw:['#343746','#21222c','#ff79c6','#bd93f9']}};
 let _orient=null;
 function applyOrient(){const o=S.orient||'auto';if(o===_orient)return;_orient=o;try{const so=screen.orientation;if(!so)return;if(o==='auto'){so.unlock&&so.unlock()}else if(so.lock){so.lock(o==='land'?'landscape':'portrait').catch(()=>{})}}catch(e){}}
-function applyLook(){const b=document.body;if(!b)return;applyOrient();const t=LOOKS[S.uiTheme]?S.uiTheme:'normal';b.classList.remove('th-light','th-dracula','lay-modern');if(t!=='normal')b.classList.add('th-'+t);if(S.layout==='modern')b.classList.add('lay-modern');const m=document.querySelector('meta[name=theme-color]');if(m)m.content=LOOKS[t].bg}
+function applyLook(){const b=document.body;if(!b)return;applyOrient();const t=LOOKS[S.uiTheme]?S.uiTheme:'normal';b.classList.remove('th-light','th-dracula','lay-modern');if(t!=='normal')b.classList.add('th-'+t);if((S.layout||'modern')==='modern')b.classList.add('lay-modern');const m=document.querySelector('meta[name=theme-color]');if(m)m.content=LOOKS[t].bg}
 function render(){applyLook();
  const A=$('#app');
  if(!S.hero){A.innerHTML=viewOnboard();$('#tabs').style.display='none';return}
@@ -1557,6 +1557,7 @@ const ACT={
  aura:id=>{S.aura=S.aura===id?null:id;save();render();SFX.sel()},
  hpmode:()=>{if(S.hpMode){S.hpMode=false;save();render();return}ask('Ligar o Modo desafio?<br><span class="mut" style="font-size:14px">A cada dia, as diárias não feitas tiram HP (5 a 15 conforme a dificuldade). Missões, poções e subir de nível curam. Se o HP zerar, você desmaia e perde 10% do ouro.</span>','Ligar',()=>{S.hpMode=true;S.hp=100;S.hpCheck=today();save();render()},false)},
  tut:id=>tutorial(+id||0),
+ tutlater:()=>{S.tutVer=TUT_VER;save();closeModal()},
  reset:()=>ask('Recomeçar a jornada? Todo o progresso (nível, ouro, missões e conquistas) será apagado.','Apagar tudo',()=>{S=fresh();save();tab='quests';render()}),
  obg:id=>{obG=id;const n=$('#obname').value;SFX.sel();render();$('#obname').value=n},
  gender:id=>{S.hero.gender=id;save();render();SFX.sel()},
@@ -1590,15 +1591,24 @@ function parseSave(txt){txt=String(txt).trim();let o;try{o=JSON.parse(txt)}catch
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ftitle')saveQuest();if(e.key==='Enter'&&e.target.id==='obname')ACT.obgo()});
 
 /* ===================== loop do foco / virada de dia ===================== */
+const TUT_VER=2;
 const TUT=[
- ['⚔','Missões','Cada tarefa é um monstro. Toque em <b>Atacar</b> (ou <b>+1</b> nas metas com contador) para derrotá-lo e ganhar EXP e ouro. Use o <b>📜 Quadro de Modelos</b> para começar rápido, ou crie suas missões em <b>+ Nova missão</b>: únicas, diárias (escolha os dias da semana) ou semanais.'],
- ['⧗','Batalha de foco','Um Pomodoro em forma de batalha: escolha 15, 25, 50 ou 90 minutos e foque até o monstro cair. A cada 25 min de foco você ganha uma <b>Poção de Descanso</b> (5 min); a cada 4, um <b>Elixir</b> (15 min).'],
- ['♦','Taverna','Gaste o ouro com recompensas reais que você mesmo define (uma pausa, um episódio de série...) e com itens: <b>Escudo de Sequência</b>, troca de monstro e <b>auras</b> para o herói.'],
- ['♛','Herói','Acompanhe seu nível, o <b>relatório da semana</b>, o bestiário e as conquistas. Seu herói <b>evolui nos níveis 10 e 20</b>. Mantenha a sequência 🔥 completando ao menos uma missão por dia, e faça <b>backup</b> de vez em quando!']];
-function tutorial(i){if(i>=TUT.length){S.tutDone=true;save();closeModal();return}const t=TUT[i];
- modal(`<div class="tut"><div class="tic">${t[0]}</div><h2 style="justify-content:center">${t[1]}</h2><div class="tb" style="text-align:center">${t[2]}</div>
-  <div class="dots">${TUT.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div></div>
-  <div class="actions"><button class="btn ghost" data-act="tut" data-id="${TUT.length}">Pular</button><button class="btn" data-act="tut" data-id="${i+1}">${i<TUT.length-1?'Próximo ▶':'Começar!'}</button></div>`)}
+ {ic:()=>mon('goblin',60),who:'Rei',t:'Missões',d:'Cada tarefa do seu dia é um <b>monstro</b>. Toque em <b>Atacar</b> (ou <b>+1</b> nas metas com contador) para derrotá-lo e ganhar EXP e ouro. Comece pelo <b>📜 Quadro de Modelos</b> ou crie em <b>+ Nova missão</b>: únicas, diárias (com os dias da semana) ou semanais. A dificuldade define o monstro e a recompensa; <b>Chefe</b> só vale para únicas e semanais.'},
+ {ic:()=>mon('dragon',60),who:'Rei',t:'Rotina e sequência',d:'Complete ao menos uma missão por dia para manter o fogo 🔥: cada dia seguido dá <b>+3% de EXP</b> (até +30%). Vencendo todas as semanais, surge o <b>👑 Chefe da Semana</b>. Depois de <b>600 EXP no mesmo dia</b>, o EXP extra vale metade: constância vale mais que maratona.'},
+ {ic:()=>`<div class="row" style="justify-content:center;gap:10px">${potion(48)}${elixir(48)}</div>`,who:'Mestre',t:'Batalha de foco',d:'Um Pomodoro em forma de batalha: escolha 15, 25, 50 ou 90 minutos e foque até o monstro cair. A cada 25 min você ganha uma <b>Poção de Descanso</b> (5 min); a cada 4 poções, um <b>Elixir</b> (pausa longa). Dá para pausar, mas fugir faz o monstro escapar.'},
+ {ic:()=>'<span style="font-size:52px">▤</span>',who:'Rei',t:'Status',d:'Veja o <b>relatório da semana</b>, a evolução do seu EXP por área e o <b>diário</b> do que você fez. Ótimo para revisar a semana no domingo.'},
+ {ic:()=>svg(KEEPER.rows,KEEPER.pal,64),who:'Taverneiro',t:'Loja',d:'Na Taverna você gasta ouro com o <b>Cardápio</b> de recompensas reais (toque em <b>+ Sugestões do Taverneiro</b>), itens úteis como o <b>Escudo de Sequência</b>, e o <b>Arsenal</b>: cores, armas, acessórios, técnicas, auras, <b>títulos</b> e os <b>trajes lendários</b>.'},
+ {ic:()=>hero(S.hero.cls,72),who:'Taverneiro',t:'Itens',d:'Tudo o que você compra fica na aba <b>Itens</b>: <b>Visual</b> (cor, acessório e traje), <b>Combate</b> (arma e técnica), <b>Aura</b>, <b>Título</b>, <b>Figurino</b> e consumíveis. Equipar é só tocar.'},
+ {ic:()=>`<div class="row" style="justify-content:center;gap:2px;align-items:flex-end">${[0,1,2].map(i=>hero(S.hero.cls,40,null,i)).join('')}${hero(S.hero.cls,48,null,3,null,{path:'light'})}</div>`,who:'Rei',t:'A jornada do herói',d:'Você <b>evolui nos níveis 10 e 20</b>. No 30 e no 35 liberam os <b>trajes Dourado e Platinado</b>. No <b>40, a Ascensão</b>: escolha Luz ou Trevas. O <b>50</b> é o máximo: os dois caminhos ficam livres e você pode <b>renascer</b>, inclusive em outra classe, levando as formas conquistadas para o <b>Figurino</b>.'},
+ {ic:()=>`<div class="row" style="justify-content:center;gap:6px">${mon('saci',52)}${mon('abobora',52)}</div>`,who:'Rei',t:'Bestiário e eventos',d:'Cada monstro derrotado entra no <b>bestiário</b> (aba Herói), inclusive os do <b>folclore brasileiro</b>. No Carnaval, na Páscoa, na Festa Junina, no Halloween e no Natal surgem <b>monstros de evento</b> só naquela semana. Há 1 chance em 12 de aparecer uma versão <span class="shn">✦ especial</span>, com recompensa em dobro.'},
+ {ic:()=>'<span style="font-size:52px">⚙</span>',who:'Rei',t:'Configurações',d:'Na aba Herói você ajusta <b>tema</b> (Normal, Claro, Escuro), <b>layout</b> (Clássico ou Moderno), <b>orientação da tela</b>, <b>dificuldade</b>, sons e o <b>Modo desafio</b> com HP. Faça <b>backup do save</b> de vez em quando: ele leva seu progresso para outro aparelho.'},
+ {ic:()=>heroA(80),who:'Rei',t:'Boa jornada!',d:'Agora é com você, herói. Pode rever este tutorial quando quiser em <b>Configurações › Tutorial</b>.'}];
+function tutorial(i){if(i>=TUT.length){S.tutDone=true;S.tutVer=TUT_VER;save();closeModal();render();return}const t=TUT[i];
+ modal(`<div class="tut"><div class="tic">${t.ic()}</div><h2 style="justify-content:center">${t.t}</h2><div class="tb" style="text-align:left"><span class="who">${t.who}:</span> ${t.d}</div>
+  <div class="dots">${TUT.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div><div class="mut" style="font-size:12px;margin-top:4px">${i+1} de ${TUT.length}</div></div>
+  <div class="actions">${i>0?`<button class="btn ghost" data-act="tut" data-id="${i-1}">◀</button>`:''}<button class="btn ghost" data-act="tut" data-id="${TUT.length}">Pular</button><button class="btn" data-act="tut" data-id="${i+1}">${i<TUT.length-1?'Próximo':'Começar!'}</button></div>`)}
+function tutNews(){modal(`<div class="tut"><div class="tic">${svg(KEEPER.rows,KEEPER.pal,64)}</div><h2 style="justify-content:center">Muita coisa nova!</h2><div class="tb" style="text-align:left"><span class="who">Taverneiro:</span> O reino mudou bastante: Ascensão, trajes lendários, Figurino, monstros do folclore e de eventos, temas e mais. Quer ver o tutorial atualizado?</div></div>
+  <div class="actions"><button class="btn ghost" data-act="tutlater">Agora não</button><button class="btn" data-act="tut" data-id="0">Ver tutorial</button></div>`)}
 let lastDay=today();
 function finishFocus(){const f=S.focus;if(!f)return;notify('Batalha de foco vencida!','Hora de descansar: abra o app para beber sua poção.');S.focus=null;const F0=FOCUS.find(x=>x.min===f.min)||FOCUS[1];
  touchStreak();const pots=addFocusTime(f.min);const r=award(f.shiny?Math.round(f.min*1.5):f.min,Math.round(f.min/5*.7)*(f.shiny?2:1),f.cat);S.bestiary[F0.m]=(S.bestiary[F0.m]||0)+1;if(f.shiny){S.shinyDex[F0.m]=(S.shinyDex[F0.m]||0)+1;S.stats.shiny++}S.stats.focus++;S.stats.focusMin+=f.min;dayRec().focus+=f.min;
@@ -1619,7 +1629,7 @@ setInterval(()=>{
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.hero&&!$('#modal').classList.contains('show')&&!$('#battle').classList.contains('show'))render()});
 
 render();
-if(S.hero&&!S.tutDone&&!$('#modal').classList.contains('show'))setTimeout(()=>tutorial(0),500);
+if(S.hero&&!S.tutDone&&!$('#modal').classList.contains('show'))setTimeout(()=>tutorial(0),500);else if(S.hero&&S.tutDone&&(S.tutVer||1)<TUT_VER)setTimeout(()=>{if(!$('#modal').classList.contains('show'))tutNews()},900);
 /* ===================== PWA: offline, notificações, armazenamento ===================== */
 syncState='Salvo neste aparelho (use o Backup)';
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
