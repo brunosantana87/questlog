@@ -78,6 +78,12 @@ body.lay-modern .ov .win{border-radius:22px}
 .lookpick .sw i{flex:1}
 .lookpick .lay{width:100%;height:30px;border-radius:6px;display:grid;place-items:center;font-size:11px}
 .mastb{margin:2px 0 8px;padding:6px 8px;border:1px solid var(--gold,#e8c35a);border-radius:6px;font-size:13px;color:var(--gold,#e8c35a)}
+.q.done.hasx{opacity:.92}.xcol{display:flex;flex-direction:column;align-items:center;gap:2px}.xcol small{font-size:11px}
+.xbtn{background:linear-gradient(#ffe27a,#e0a92a)!important;color:#3a2600!important}.xbtn[disabled]{filter:grayscale(1);opacity:.5}
+.exb{color:#ffd447;font-weight:normal}.q{position:relative}.q.crit{animation:crit .45s}
+@keyframes crit{0%{transform:translateX(0)}20%{transform:translateX(-4px);box-shadow:0 0 0 2px #ffd447}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}100%{transform:none}}
+.critpop{position:absolute;right:12px;top:-4px;color:#ffd447;font-size:11px;text-shadow:0 2px 0 #000;animation:critpop .9s forwards;pointer-events:none}
+@keyframes critpop{0%{opacity:0;transform:translateY(8px) scale(.6)}30%{opacity:1;transform:translateY(-4px) scale(1.15)}100%{opacity:0;transform:translateY(-18px)}}
 </style>
 <style>
 :root{--p1:#0a1050;--p2:#050833;--p3:#1d2a85;--sh:#04062a;--sh2:#05072a;--b0:#ffffff1a;--b1:#ffffff22;--b2:#ffffff33;--b3:#ffffff44;--b4:#ffffff55;--b5:#ffffff66;--bg:#0b0f2a;--w1:#26348f;--w2:#111952;--line:#e9ecff;--gold:#ffd447;--xp:#4dffb0;--hp:#ff5470;--mut:#aab2e6;--txt:#fff}
@@ -615,6 +621,9 @@ const weekKey=(d=new Date())=>{const x=new Date(d);x.setDate(x.getDate()-((x.get
 const perKey=q=>q.type==='daily'?today():q.type==='weekly'?weekKey():'all';
 const qDone=q=>q.type==='once'?!!q.done:q.lastDone===perKey(q);
 const qTarget=q=>Math.max(1,+q.target||1);
+const exKey=q=>q.type==='once'?today():perKey(q);
+const exN=q=>q.exK===exKey(q)?(q.exN||0):0;
+const canExtra=q=>qTarget(q)>1&&qDone(q)&&!q.archived&&qActive(q)&&(q.type!=='once'||(q.doneAt&&dstr(new Date(q.doneAt))===today()));
 const qProg=q=>qDone(q)?qTarget(q):(q.per===perKey(q)?(q.prog||0):0);
 const SHINY_RATE=1/12;
 function rollMon(q){q.mon=pickMon(q.diff);q.shiny=Math.random()<SHINY_RATE}
@@ -634,12 +643,13 @@ const TITLE_LV=[[5,'lv5','Caçador de Slimes','r'],[10,'lv10','Portador da Chama
 const TITLE_ASC=[['asc_l','Escolhido da Luz','l'],['asc_d','Arauto das Trevas','l'],['asc_b','Equilíbrio Eterno','l']];
 const TITLE_MS=[[2,'ms2','Mestre de Duas Artes','l'],[3,'ms3','Mestre de Três Artes','l'],[4,'ms4','Mestre de Todas as Artes','l']];
 const TITLE_RB=[[1,'rb1','Renascido','l'],[3,'rb3','Fênix Imortal','l'],[5,'rb5','O Eterno','l']];
+const TITLE_EX=[['ex_dev','Além do Dever','e']];
 const TITLE_SHOP=[{id:'s_cafe',n:'Movido a Café',cost:250,r:'c'},{id:'s_inc',n:'O Incansável',cost:300,r:'c'},{id:'s_mad',n:'Sentinela da Madrugada',cost:400,r:'r'},{id:'s_min',n:'Bardo das Minutas',cost:400,r:'r'},{id:'s_proc',n:'Devorador de Processos',cost:500,r:'r'},{id:'s_desp',n:'Cavaleiro do Despacho',cost:600,r:'e'},{id:'s_praz',n:'Domador de Prazos',cost:800,r:'e'},{id:'s_foco',n:'Senhor do Foco',cost:900,r:'e'},{id:'s_lend',n:'O Lendário',cost:1500,r:'l'},{id:'s_imp',n:'Imperador da Produtividade',cost:2500,r:'l'},{id:'s_ceu',n:'Guardião dos Céus',cost:3500,r:'l'},{id:'s_abis',n:'Senhor do Abismo',cost:3500,r:'l'},{id:'s_mito',n:'Mito do Tribunal',cost:5000,r:'l'}];
-const allTitles=()=>[...TITLE_LV.map(([lv,id,n,r])=>({id,n,r,lv})),...TITLE_RB.map(([rb,id,n,r])=>({id,n,r,rb})),...TITLE_ASC.map(([id,n,r])=>({id,n,r})),...TITLE_MS.map(([k,id,n,r])=>({id,n,r})),...TITLE_SHOP];
+const allTitles=()=>[...TITLE_LV.map(([lv,id,n,r])=>({id,n,r,lv})),...TITLE_RB.map(([rb,id,n,r])=>({id,n,r,rb})),...TITLE_ASC.map(([id,n,r])=>({id,n,r})),...TITLE_MS.map(([k,id,n,r])=>({id,n,r})),...TITLE_EX.map(([id,n,r])=>({id,n,r})),...TITLE_SHOP];
 const titleById=id=>allTitles().find(t=>t.id===id);
 const ttHTML=t=>`<span class="tt tt-${t.r}">«${t.n}»</span>`;
 const heroTitle=()=>{const t=S.title&&(S.owned||[]).includes('n:'+S.title)&&titleById(S.title);return t?ttHTML(t):title(S.level)};
-const ACH_G={first:50,f1:50,pot:50,buy:50,st3:50,lv5:50,weekly1:50,shiny1:50,aura1:50,shield1:50,ars1:50,early:50,late:50,allcat:50,perfect:50,boss:50,wboss1:50,elx:50,
+const ACH_G={ex10:150,ex50:300,first:50,f1:50,pot:50,buy:50,st3:50,lv5:50,weekly1:50,shiny1:50,aura1:50,shield1:50,ars1:50,early:50,late:50,allcat:50,perfect:50,boss:50,wboss1:50,elx:50,
  q10:150,weekly10:150,big:150,tick100:150,lv10:150,st7:150,f10:150,pot20:150,best10:150,shiny5:150,buy10:150,ars10:150,g1k:150,reb1:300,
  q50:300,q200:300,tick500:300,perfect10:300,boss10:300,lv20:300,st14:300,f50:300,f600:300,daily100:300,wboss10:300,for10:300,int10:300,vit10:300,car10:300,g10k:300,
  q500:500,q1000:500,boss50:500,lv30:500,st30:500,st100:500,f3000:500,bestall:500,shinyall:500};
@@ -905,6 +915,8 @@ const ACH=[
  ['daily100','Rotina de Aço','Conclua 100 diárias',s=>s.stats.daily>=100],
  ['weekly1','Meta Semanal','Conclua uma missão semanal',s=>s.stats.weekly>=1],
  ['weekly10','Ritmo de Gabinete','Conclua 10 semanais',s=>s.stats.weekly>=10],
+ ['ex10','Hora Extra','Faça 10 extras além da meta',s=>(s.stats.extras||0)>=10],
+ ['ex50','Além do Dever','Faça 50 extras além da meta (título)',s=>(s.stats.extras||0)>=50],
  ['big','Maratonista','Bata uma meta de 20+ marcações',s=>s.stats.bigMeta>=1],
  ['tick100','Passo a Passo','Registre 100 progressos parciais',s=>s.stats.ticks>=100],
  ['tick500','Formiguinha','Registre 500 progressos parciais',s=>s.stats.ticks>=500],
@@ -974,7 +986,7 @@ const ACH=[
 function checkDay(){const h=new Date().getHours();if(h<7)S.stats.early++;if(h>=23)S.stats.late++;
  const t=today(),cats=new Set(S.log.filter(l=>l.c&&l.xp>0&&dstr(new Date(l.t))===t).map(l=>l.c));if(cats.size>=4&&S.stats.lastAllcat!==t){S.stats.allcat++;S.stats.lastAllcat=t}
  const dl=QA().filter(q=>q.type==='daily'&&qActive(q));if(dl.length>=3&&dl.every(qDone)&&S.stats.lastPerfect!==t){S.stats.perfect++;S.stats.lastPerfect=t}}
-function checkAch(){const got=[];for(let i=0;i<3;i++)ACH.forEach(a=>{if(!S.ach[a[0]]&&a[3](S)){S.ach[a[0]]=Date.now();const g=achGold(a[0]);S.gold+=g;S.stats.goldEarned+=g;addLog('🏆 Conquista: '+a[1]+' (+'+g+' G)',0,g);got.push(a)}});return got}
+function checkAch(){const got=[];for(let i=0;i<3;i++)ACH.forEach(a=>{if(!S.ach[a[0]]&&a[3](S)){S.ach[a[0]]=Date.now();const g=achGold(a[0]);S.gold+=g;S.stats.goldEarned+=g;addLog('🏆 Conquista: '+a[1]+' (+'+g+' G)',0,g);got.push(a)}});if(S.ach.ex50&&!S.owned.includes('n:ex_dev'))S.owned.push('n:ex_dev');return got}
 
 /* ===================== mecânicas ===================== */
 function addLog(txt,xp,g,c){S.log.unshift({t:Date.now(),txt,xp,g,c});if(xp>0){const r=dayRec();r.xp+=xp;if(c)r.c[c]=(r.c[c]||0)+xp}if(S.log.length>80)S.log.length=80}
@@ -1009,6 +1021,15 @@ function hitQuest(q){
   if(q.type!=='once')rollMon(q);}
  else addLog(`Golpe ${q.prog}/${T} — ${q.title}`,r.xp,r.gold,q.cat);
  return{q,mk,sh,fin,r,prog:q.prog,T}}
+function extra(id){const q=S.quests.find(x=>x.id===id);if(!q||!canExtra(q))return;const T=qTarget(q);
+ if(exN(q)>=T){toast(`<div class="grow mut" style="font-size:14px">Limite de extras de hoje atingido (+${T}). Que tal aumentar a meta?</div>`);return}
+ undoSnap=null;$('#toast').classList.remove('show');const snap=JSON.stringify(S);const D=DIFF[q.diff];
+ const r=award(Math.max(1,Math.round(D.xp/T*1.25)),Math.max(1,Math.round(D.g/T*1.25)),q.cat);
+ if(q.exK!==exKey(q)){q.exK=exKey(q);q.exN=0}q.exN++;S.stats.extras=(S.stats.extras||0)+1;const dr=dayRec();dr.ex=(dr.ex||0)+1;
+ addLog(`★ Extra +${q.exN} — ${q.title}`,r.xp,r.gold,q.cat);
+ const got=checkAch();save();render();SFX.hit();setTimeout(()=>tone(1320,.08,0,'square',.05),90);
+ const row=$('.q [data-act="extra"][data-id="'+q.id+'"]');if(row){const el=row.closest('.q');el.classList.add('crit');el.insertAdjacentHTML('beforeend','<b class="critpop px">CRÍTICO!</b>');}
+ levelUps(r.ups,()=>achToasts(got,()=>undoToast(snap,`★ Extra +${q.exN}/${T} ${esc(q.unit||'')} · +${r.xp} EXP +${r.gold} G`)))}
 function weekBoss(){const wk=weekKey(),h=hashStr('wb'+wk),P=DIFF.b.pool;return{wk,mk:P[h%P.length],sh:h%12===0}}
 function weeklyBossCheck(){const W=QA().filter(q=>q.type==='weekly');if(W.length<2)return null;const B=weekBoss();if(S.wboss===B.wk||!W.every(qDone))return null;
  S.wboss=B.wk;const r=award(B.sh?225:150,B.sh?110:55,null);S.bestiary[B.mk]=(S.bestiary[B.mk]||0)+1;if(B.sh){S.shinyDex[B.mk]=(S.shinyDex[B.mk]||0)+1;S.stats.shiny++}
@@ -1217,12 +1238,13 @@ function questRow(q){const D=DIFF[q.diff],C=CATS[q.cat];const done=qDone(q),off=
  const late=!done&&q.due&&q.due<today(),dueToday=!done&&q.due===today();
  const typ=q.type==='daily'?`↻ diária${daysTxt(q)?' · '+daysTxt(q):''}${q.count?` · ${q.count}x`:''}`:q.type==='weekly'?`↻ semanal${q.count?` · ${q.count}x`:''}`:'';
  const L=q.link&&S.quests.find(x=>x.id===q.link);
- return `<div class="q ${done?'done':''} ${off&&!done?'off':''} ${sh?'shq':''}"><div class="mon">${mon(mk,32,sh)}${sh?'<b class="spark">✦</b>':''}</div><div class="grow">
+ const cx=canExtra(q);
+ return `<div class="q ${done?'done':''} ${cx?'hasx':''} ${off&&!done?'off':''} ${sh?'shq':''}"><div class="mon">${mon(mk,32,sh)}${sh?'<b class="spark">✦</b>':''}</div><div class="grow">
   <div class="t" data-act="qedit" data-id="${q.id}">${esc(q.title)}</div>
   <div class="meta"><span${sh?' class="shn"':''}>${sh?'✦ ':''}${mname(mk)} · ${D.xp} EXP</span>${typ?`<span>${typ}</span>`:''}${q.due&&!done?`<span class="${late?'late':''}">${late?'ATRASADA · ':dueToday?'HOJE · ':''}${fmtDate(q.due)}</span>`:''}</div>
-  ${T>1?`<div class="prog"><div class="bar hp"><i style="width:${P/T*100}%"></i></div><span>${P}/${T} ${esc(q.unit||'')}</span></div>${T<=12?`<div class="pips">${Array.from({length:T},(_,i)=>`<i class="${i<P?'on':''}"></i>`).join('')}</div>`:''}`:''}
+  ${T>1?`<div class="prog"><div class="bar hp"><i style="width:${P/T*100}%"></i></div><span>${P}/${T} ${esc(q.unit||'')}${done&&exN(q)?` <b class="exb">+${exN(q)} ★</b>`:''}</span></div>${T<=12?`<div class="pips">${Array.from({length:T},(_,i)=>`<i class="${i<P?'on':''}"></i>`).join('')}</div>`:''}`:''}
   ${L?`<div class="meta"><span>⤷ soma em: ${esc(L.title)}</span></div>`:''}</div>
-  ${off&&!done?`<span class="mut" style="font-size:13px;text-align:right">Folga<br>hoje</span>`:done?(q.type==='once'?`<button class="btn sm ghost" data-act="redo" data-id="${q.id}">↺ Repetir</button>`:`<span class="mut" style="font-size:13px;text-align:right">${q.type==='daily'?'Amanhã':'Próxima<br>semana'}</span>`):`<button class="btn sm" data-act="done" data-id="${q.id}">${T>1?'+1':'Atacar'}</button>`}</div>`}
+  ${cx?`<div class="xcol"><button class="btn sm xbtn" data-act="extra" data-id="${q.id}" ${exN(q)>=T?'disabled':''}>+1 extra</button><small class="mut">${exN(q)>=T?'limite hoje':'até +'+(T-exN(q))}</small></div>`:off&&!done?`<span class="mut" style="font-size:13px;text-align:right">Folga<br>hoje</span>`:done?(q.type==='once'?`<button class="btn sm ghost" data-act="redo" data-id="${q.id}">↺ Repetir</button>`:`<span class="mut" style="font-size:13px;text-align:right">${q.type==='daily'?'Amanhã':'Próxima<br>semana'}</span>`):`<button class="btn sm" data-act="done" data-id="${q.id}">${T>1?'+1':'Atacar'}</button>`}</div>`}
 
 function viewQuests(){
  const daily=QA().filter(q=>q.type==='daily'),weekly=QA().filter(q=>q.type==='weekly');
@@ -1386,7 +1408,7 @@ function weekReport(){const wk=weekKey(),days=[...Array(7)].map((_,i)=>addDays(w
  return `<div class="win"><details class="sec" data-sec="rep" ${OPEN.rep!==false?'open':''}><summary><h2><i class="arw">▸</i>📊 Relatório da semana<span class="cnt">${fmtDate(days[0])}–${fmtDate(days[6])}</span></h2></summary>
   <div class="chart">${days.map((d,i)=>{const v=R(d).xp,t=d===today();return `<div class="${t?'today':''}"><span>${v||''}</span><i style="height:${v/mx*100}%"></i><b>${WD[(i+1)%7]}</b></div>`}).join('')}</div>
   <div class="grid2" style="margin-top:10px"><div class="kv"><b>${xp}</b><span>EXP na semana${diff!=null?` <span style="color:${diff>=0?'var(--xp)':'#ff7d8f'}">${diff>=0?'▲':'▼'}${Math.abs(diff)}%</span>`:''}</span></div><div class="kv"><b>${dn}</b><span>missões concluídas</span></div>
-   <div class="kv"><b>${Math.floor(fm/60)}h ${fm%60}m</b><span>tempo de foco</span></div><div class="kv"><b>${S.wboss===wk?'✓':'—'}</b><span>chefe da semana</span></div></div>
+   <div class="kv"><b>${Math.floor(fm/60)}h ${fm%60}m</b><span>tempo de foco</span></div><div class="kv"><b>${S.wboss===wk?'✓':'—'}</b><span>chefe da semana</span></div><div class="kv"><b>${sum(days,'ex')}</b><span>extras ★ além da meta</span></div></div>
   <div class="tier">EXP por área</div>${Object.entries(CATS).map(([k,c])=>`<div class="stat"><span style="color:${c.c}">${c.a}</span><div class="bar st" style="color:${c.c}"><i style="width:${(cat[k]||0)/cmx*100}%"></i></div><span class="px" style="font-size:10px;text-align:right">${cat[k]||0}</span></div>`).join('')}
   ${xp?`<div class="sub" style="margin-top:6px">Mais forte: <b style="color:${CATS[ranked[0]].c};font-weight:normal">${CATS[ranked[0]].n}</b> · Precisa de atenção: <b style="color:${CATS[ranked[3]].c};font-weight:normal">${CATS[ranked[3]].n}</b></div>`:'<div class="sub" style="margin-top:6px">Conclua missões para ver seu relatório.</div>'}
  </details></div>`}
@@ -1514,7 +1536,7 @@ const ACT={
  fset:(id,el)=>{F[el.dataset.k]=id;el.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));if(el.dataset.k==='type'){const bb=document.querySelector('#fdiff [data-id=b]');if(bb){bb.disabled=id==='daily';if(id==='daily'&&F.diff==='b'){F.diff='h';document.querySelectorAll('#fdiff button').forEach(b=>b.classList.toggle('on',b.dataset.id==='h'))}}$('#fduewrap').style.display=id!=='once'?'none':'';$('#fdayswrap').style.display=id!=='daily'?'none':''}SFX.sel()},
  qsave:saveQuest,
  qdel:id=>ask('Excluir esta missão? O inimigo fugirá para sempre.','Excluir',()=>{S.quests=S.quests.filter(q=>q.id!==id);save();render()}),
- done:id=>complete(id),
+ done:id=>complete(id),extra:id=>extra(id),
  undo:()=>{if(!undoSnap)return;S=migrate(JSON.parse(undoSnap));undoSnap=null;save();render();$('#toast').classList.remove('show')},
  clear:()=>ask('Remover todas as missões concluídas da lista? (O EXP ganho continua.)','Limpar',()=>{S.quests=S.quests.filter(q=>q.type==='daily'||!q.done);save();render()}),
  bshiny:id=>{bestShiny[id]=!bestShiny[id];render()},
@@ -1618,7 +1640,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ftitl
 /* ===================== loop do foco / virada de dia ===================== */
 const TUT_VER=2;
 const TUT=[
- {ic:()=>mon('goblin',60),who:'Rei',t:'Missões',d:'Cada tarefa do seu dia é um <b>monstro</b>. Toque em <b>Atacar</b> (ou <b>+1</b> nas metas com contador) para derrotá-lo e ganhar EXP e ouro. Comece pelo <b>📜 Quadro de Modelos</b> ou crie em <b>+ Nova missão</b>: únicas, diárias (com os dias da semana) ou semanais. A dificuldade define o monstro e a recompensa; <b>Chefe</b> só vale para únicas e semanais.'},
+ {ic:()=>mon('goblin',60),who:'Rei',t:'Missões',d:'Cada tarefa do seu dia é um <b>monstro</b>. Toque em <b>Atacar</b> (ou <b>+1</b> nas metas com contador) para derrotá-lo e ganhar EXP e ouro. Bateu a meta e quer ir além? Use <b>+1 extra</b>: cada unidade a mais rende 25% de bônus (até o dobro da meta por dia). Comece pelo <b>📜 Quadro de Modelos</b> ou crie em <b>+ Nova missão</b>: únicas, diárias (com os dias da semana) ou semanais. A dificuldade define o monstro e a recompensa; <b>Chefe</b> só vale para únicas e semanais.'},
  {ic:()=>mon('dragon',60),who:'Rei',t:'Rotina e sequência',d:'Complete ao menos uma missão por dia para manter o fogo 🔥: cada dia seguido dá <b>+3% de EXP</b> (até +30%). Vencendo todas as semanais, surge o <b>👑 Chefe da Semana</b>. Depois de <b>600 EXP no mesmo dia</b>, o EXP extra vale metade: constância vale mais que maratona.'},
  {ic:()=>`<div class="row" style="justify-content:center;gap:10px">${potion(48)}${elixir(48)}</div>`,who:'Mestre',t:'Batalha de foco',d:'Um Pomodoro em forma de batalha: escolha 15, 25, 50 ou 90 minutos e foque até o monstro cair. A cada 25 min você ganha uma <b>Poção de Descanso</b> (5 min); a cada 4 poções, um <b>Elixir</b> (pausa longa). Dá para pausar, mas fugir faz o monstro escapar.'},
  {ic:()=>'<span style="font-size:52px">▤</span>',who:'Rei',t:'Status',d:'Veja o <b>relatório da semana</b>, a evolução do seu EXP por área e o <b>diário</b> do que você fez. Ótimo para revisar a semana no domingo.'},
