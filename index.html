@@ -531,6 +531,24 @@ body.lay-modern .ihspr{border:0;border-radius:18px;box-shadow:0 0 0 2px var(--go
  .battle>.win,.battle .win{max-width:380px;margin-top:0!important}
  .ov .win{max-height:94vh}
 }
+/* wide: tablets/PCs em paisagem */
+html.wide .tabs{top:0;bottom:0;right:auto;width:calc(env(safe-area-inset-left) + 88px);padding:calc(env(safe-area-inset-top) + 8px) 6px calc(env(safe-area-inset-bottom) + 8px) calc(env(safe-area-inset-left) + 8px);background:none}
+html.wide .tabs .in{height:100%;max-width:none;grid-template-columns:1fr;grid-template-rows:repeat(6,1fr);gap:3px;padding:5px}
+html.wide .tabs button{padding:2px;justify-content:center}
+html.wide .app{max-width:none;margin:0;padding:10px calc(env(safe-area-inset-right) + 16px) 90px calc(env(safe-area-inset-left) + 104px)}
+html.wide .app>*{max-width:760px}
+html.wide .fabs{left:auto;right:calc(env(safe-area-inset-right) + 6px);bottom:calc(env(safe-area-inset-bottom) + 12px);max-width:none;margin:0}
+html.wide .toast{bottom:calc(env(safe-area-inset-bottom) + 12px);left:calc(50% + 44px)}
+html.wide .invhero{top:0}
+html.wide .battle{flex-direction:row;gap:18px;padding:10px 20px}
+html.wide .battle .stage{flex:1;max-width:420px}
+html.wide .battle>.win,html.wide .battle .win{max-width:380px;margin-top:0!important}
+html.wide .ov .win{max-height:94vh}
+html.wide .app{column-count:var(--cols,2);column-gap:16px;column-fill:balance}
+html.wide .app>*{max-width:none;break-inside:avoid;-webkit-column-break-inside:avoid}
+html.wide .app>.topbar{column-span:all}
+html.wide .app>.logo{column-span:all}
+html.wide .win,html.wide .q{break-inside:avoid}
 
 .avatar .spr,.ihspr .spr,.evo .spr,.inv .spr,.shopic .spr{max-width:100%;height:auto}
 .ascfx,.armfx{position:relative;display:inline-block;line-height:0}
@@ -571,10 +589,11 @@ body.lay-modern .ihspr{border:0;border-radius:18px;box-shadow:0 0 0 2px var(--go
 .rbcard.cur{border-color:var(--gold)}.rbcard b{font-weight:normal;color:var(--gold)}.rbcard small{font-size:11px;line-height:1.25}
 .invtabs button{font-size:10px}
 </style>
-<script>(function(){function f(){try{var w=innerWidth,h=innerHeight,d=document.documentElement,ls=w>h&&h<=560;
-var z=ls?1:Math.max(1,Math.min(w/480,h/720,2.4));z=Math.round(z*100)/100;
-var ew=w/z,mw=ls?480:(ew>600?Math.min(ew-24,620):480);
-d.style.zoom=z>1.02?z:'';d.style.setProperty('--mw',mw+'px')}catch(e){}}
+<script>(function(){function f(){try{var w=innerWidth,h=innerHeight,d=document.documentElement,land=w>h,wide=land&&w>=720&&h>560,sm=land&&h<=560;
+var z=sm?1:wide?Math.max(1,Math.min(h/620,w/960,2.2)):Math.max(1,Math.min(w/480,h/720,2.4));z=Math.round(z*100)/100;
+var ew=w/z,mw=(sm||wide)?480:(ew>600?Math.min(ew-24,620):480);
+var cols=wide?Math.max(1,Math.min(3,Math.floor((ew-130)/380))):1;
+d.style.zoom=z>1.02?z:'';d.style.setProperty('--mw',mw+'px');d.style.setProperty('--cols',cols);d.classList.toggle('wide',wide)}catch(e){}}
 f();addEventListener('resize',f);addEventListener('orientationchange',function(){setTimeout(f,200)})})()</script>
 </head>
 <body>
