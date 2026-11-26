@@ -1059,7 +1059,7 @@ function hitQuest(q){
  return{q,mk,sh,fin,r,prog:q.prog,T}}
 function extra(id){const q=S.quests.find(x=>x.id===id);if(!q||!canExtra(q))return;const T=qTarget(q);
  if(exN(q)>=T){toast(`<div class="grow mut" style="font-size:14px">Limite de extras de hoje atingido (+${T}). Que tal aumentar a meta?</div>`);return}
- undoSnap=null;$('#toast').classList.remove('show');const snap=JSON.stringify(S);const D=DIFF[q.diff];
+ undoSnap=null;$('#toast').classList.remove('show');const snap=JSON.stringify(S);const D=DIFF[q.diff];histPush(q,snap);
  const r=award(Math.max(1,Math.round(D.xp/T*1.25)),Math.max(1,Math.round(D.g/T*1.25)),q.cat);
  if(q.exK!==exKey(q)){q.exK=exKey(q);q.exN=0}q.exN++;S.stats.extras=(S.stats.extras||0)+1;const dr=dayRec();dr.ex=(dr.ex||0)+1;
  addLog(`★ Extra +${q.exN} — ${q.title}`,r.xp,r.gold,q.cat);
@@ -1072,7 +1072,7 @@ function weeklyBossCheck(){const W=QA().filter(q=>q.type==='weekly');if(W.length
  S.stats.bosses++;S.stats.wboss=(S.stats.wboss||0)+1;heal(30);addLog(`👑 Chefe da Semana derrotado: ${mname(B.mk)}`,r.xp,r.gold);
  return{boss:1,fin:1,mk:B.mk,sh:B.sh,r,q:{unit:''},T:1}}
 function complete(id){
- const q=S.quests.find(x=>x.id===id);if(!q||qDone(q)||!qActive(q)||q.archived)return;undoSnap=null;$('#toast').classList.remove('show');const snap=JSON.stringify(S);
+ const q=S.quests.find(x=>x.id===id);if(!q||qDone(q)||!qActive(q)||q.archived)return;undoSnap=null;$('#toast').classList.remove('show');const snap=JSON.stringify(S);histPush(q,snap);
  touchStreak();const evs=[hitQuest(q)];const L=q.link&&q.link!==q.id&&S.quests.find(x=>x.id===q.link);if(L)evs.push(hitQuest(L));
  const E=evs.filter(Boolean),ups=[];E.forEach(e=>ups.push(...e.r.ups));const WB=weeklyBossCheck();if(WB){E.push(WB);ups.push(...WB.r.ups)}
  checkDay();const got=checkAch();save();render();
@@ -1284,6 +1284,10 @@ function toast(html,ms=2600,cb){const T=$('#toast');clearTimeout(toastT);T.inner
  toastT=setTimeout(()=>{T.classList.remove('show');cb&&cb()},ms)}
 function achToasts(list,done){if(!list.length){done&&done();return}const a=list.shift();SFX.ach();
  toast(`<span style="font-size:22px">🏆</span><div class="grow"><div style="color:var(--gold)">Conquista desbloqueada!</div><div>${a[1]} <span style="color:var(--gold)">+${achGold(a[0])} G</span></div></div>`,2400,()=>achToasts(list,done))}
+let HIST=[];try{HIST=JSON.parse(localStorage.getItem(KEY+'_hist')||'[]')}catch(e){HIST=[]}
+function histSave(){try{localStorage.setItem(KEY+'_hist',JSON.stringify(HIST))}catch(e){HIST=HIST.slice(-2);try{localStorage.setItem(KEY+'_hist',JSON.stringify(HIST))}catch(e2){}}}
+function histPush(q,snap){const now=Date.now();HIST=HIST.filter(h=>now-h.t<864e5);HIST.push({id:q.id,title:q.title,t:now,snap});if(HIST.length>5)HIST=HIST.slice(-5);histSave()}
+function histIdx(id){for(let i=HIST.length-1;i>=0;i--)if(HIST[i].id===id&&Date.now()-HIST[i].t<864e5)return i;return -1}
 let undoSnap=null;
 function undoToast(snap,msg){undoSnap=snap;toast(`<div class="grow mut" style="font-size:14px">${msg||'Missão concluída.'}</div><button class="btn sm ghost" data-act="undo">Desfazer</button>`,5000,()=>{undoSnap=null})}
 
@@ -1316,6 +1320,7 @@ function questForm(id){const q=id?S.quests.find(x=>x.id===id):null;
   ${others.length?`<label class="f">Somar o progresso também em <span class="mut">(meta maior)</span></label><select class="in" id="flink"><option value="">— nenhuma —</option>${others.map(x=>`<option value="${x.id}" ${F.link===x.id?'selected':''}>${esc(x.title)} (${qTarget(x)} ${esc(x.unit||'')})</option>`).join('')}</select>`:''}
   <div id="fduewrap" style="${F.type!=='once'?'display:none':''}"><label class="f">Prazo (opcional)</label><input type="date" class="in" id="fdue" value="${esc(F.due)}"></div>
   ${q?`<div class="row" style="margin-top:12px;gap:8px"><div class="mon" style="width:40px;height:40px">${mon(qmon(q),32,q.shiny)}</div><div class="grow sub">Inimigo atual: ${q.shiny?'✦ ':''}${mname(qmon(q))}</div><button class="btn ghost sm" data-act="reroll" data-id="${q.id}" ${S.gold<25?'disabled':''}>🔄 Trocar · 25 G</button></div>`:''}
+  ${q&&histIdx(q.id)>=0?`<button class="btn ghost wide" style="margin-top:12px" data-act="reopen" data-id="${q.id}">↩ Desfazer a última conclusão desta missão</button>`:''}
   <div class="actions">${q?`<button class="btn red" data-act="qdel" data-id="${q.id}">Excluir</button><button class="btn ghost" data-act="archive" data-id="${q.id}">🗄 Arquivar</button>`:`<button class="btn ghost" data-act="close">Cancelar</button>`}<button class="btn" data-act="qsave">Salvar</button></div>`);
  setTimeout(()=>{if(!q)$('#ftitle').focus()},60)}
 function saveQuest(){if(F.type==='daily'&&F.diff==='b')F.diff='h';const t=$('#ftitle').value.trim();if(!t){$('#ftitle').focus();$('#ftitle').style.borderColor='#ff5470';return}
@@ -1664,12 +1669,15 @@ const ACT={
  tab:id=>{tab=id;try{localStorage.setItem(KEY+'_tab',id)}catch(e){}SFX.sel();render();scrollTo(0,0)},
  filter:id=>{filter=id;render()},
  new:()=>{SFX.sel();questForm()},
+ reopen:id=>{const i=histIdx(id);if(i<0)return;const h=HIST[i],later=HIST.length-1-i,hh=new Date(h.t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  if(!confirm(`Voltar o app para o momento antes de concluir “${h.title}” (${hh})?\n\nO EXP, o ouro e os bônus dessa conclusão serão devolvidos.`+(later?`\nAtenção: ${later} conclusão(ões) feita(s) depois dela também será(ão) desfeita(s).`:'')+`\nQualquer outra coisa feita depois (compras, edições) também volta.`))return;
+  try{S=migrate(JSON.parse(h.snap))}catch(e){return}HIST=HIST.slice(0,i);histSave();undoSnap=null;save();closeModal();render();toast('<div class="grow">Conclusão desfeita. A missão voltou como estava.</div>')},
  qedit:id=>questForm(id),
  fset:(id,el)=>{F[el.dataset.k]=id;el.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));if(el.dataset.k==='type'){const bb=document.querySelector('#fdiff [data-id=b]');if(bb){bb.disabled=id==='daily';if(id==='daily'&&F.diff==='b'){F.diff='h';document.querySelectorAll('#fdiff button').forEach(b=>b.classList.toggle('on',b.dataset.id==='h'))}}$('#fduewrap').style.display=id!=='once'?'none':'';$('#fdayswrap').style.display=id!=='daily'?'none':''}SFX.sel()},
  qsave:saveQuest,
  qdel:id=>ask('Excluir esta missão? O inimigo fugirá para sempre.','Excluir',()=>{S.quests=S.quests.filter(q=>q.id!==id);save();render()}),
  done:id=>complete(id),extra:id=>extra(id),
- undo:()=>{if(!undoSnap)return;S=migrate(JSON.parse(undoSnap));undoSnap=null;save();render();$('#toast').classList.remove('show')},
+ undo:()=>{if(!undoSnap)return;if(HIST.length){HIST.pop();histSave()}S=migrate(JSON.parse(undoSnap));undoSnap=null;save();render();$('#toast').classList.remove('show')},
  clear:()=>ask('Remover todas as missões concluídas da lista? (O EXP ganho continua.)','Limpar',()=>{S.quests=S.quests.filter(q=>q.type==='daily'||!q.done);save();render()}),
  bshiny:id=>{bestShiny[id]=!bestShiny[id];render()},
  tpl:()=>{SFX.sel();tplModal()},
